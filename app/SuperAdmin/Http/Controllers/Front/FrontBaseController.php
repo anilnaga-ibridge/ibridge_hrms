@@ -43,6 +43,10 @@ class FrontBaseController extends Controller
                 ->where('name_key', $this->langKey)
                 ->first();
             $settings = $frontSettings->credentials;
+            $settings = Common::addWebsiteImageUrl($settings, 'header_logo');
+            $settings = Common::addWebsiteImageUrl($settings, 'header_sidebar_logo');
+            $settings = Common::addWebsiteImageUrl($settings, 'footer_logo');
+            $settings = Common::addWebsiteImageUrl($settings, 'header_background_image');
             $this->frontSetting = (object) $settings;
 
             // For Breadcrumb

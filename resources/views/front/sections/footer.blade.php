@@ -1,11 +1,15 @@
-<section class="relative py-24 bg-black overflow-hidden">
+<section class="relative py-24 overflow-hidden" style="background: linear-gradient(135deg, #133c8c 0%, #7b2a72 35%, #d65426 70%, #ffa000 100%);">
     <img class="absolute bottom-0 left-0" src="gradia-assets/elements/footers/radial2.svg" alt="">
     <div class="relative z-10 container mx-auto px-8">
         <div class="flex flex-wrap -m-6">
             <div class="w-full md:w-1/2 lg:w-5/12 p-6">
                 <div class="flex flex-col justify-between h-full max-w-sm">
                     <div class="mb-11">
-                        <img class="w-40" src="{{ asset('uploads/website/website_f4dupn1tkzjmpgsaelka.png') }}" alt="">
+                        <a href="{{ route('front.index') }}" class="inline-block">
+                            <div class="bg-white rounded-lg px-3 py-1.5 flex items-center justify-center shadow-lg" style="height: 42px;">
+                                <img class="h-full object-contain" src="{{ (isset($frontSetting->footer_logo) && $frontSetting->footer_logo !== 'dark.png') ? $frontSetting->footer_logo_url : asset('uploads/website/website_f4dupn1tkzjmpgsaelka.png') }}" alt="" style="max-height: 100%;">
+                            </div>
+                        </a>
                     </div>
                     <div>
                         <p class="mb-14 text-gray-200 text-sm">{{ $frontSetting->footer_description }}</p>

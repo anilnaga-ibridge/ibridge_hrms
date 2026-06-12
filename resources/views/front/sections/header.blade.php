@@ -1,37 +1,40 @@
-<section class="overflow-hidden @if(!$showFullHeader) h-[300px] @endif"
-    style="background: url({{ $frontSetting->header_background_image_url }}) no-repeat; background-size: cover;">
-    <section class="container mx-auto">
-        <div class="flex items-center justify-between px-8 py-4">
-            <div class="w-auto">
-                <div class="flex flex-wrap items-center">
-                    <div class="w-auto mr-14">
-                        <a href="{{ route('front.index') }}">
-                            <img class="w-40" src="{{ asset('uploads/website/website_f4dupn1tkzjmpgsaelka.png') }}" alt="">
-                        </a>
+<section class="overflow-hidden @if(!$showFullHeader && (!isset($hideBreadcrumb) || !$hideBreadcrumb)) pb-12 @endif"
+    style="@if(!$showFullHeader) background: linear-gradient(135deg, #133c8c 0%, #7b2a72 35%, #d65426 70%, #ffa000 100%); @else background: #ffffff; @endif">
+    <div style="background: linear-gradient(135deg, #133c8c 0%, #7b2a72 35%, #d65426 70%, #ffa000 100%); margin: -1px -1px 0;">
+        <div class="container mx-auto">
+            <div class="flex items-center justify-between px-8 py-4">
+                <div class="w-auto">
+                    <div class="flex flex-wrap items-center">
+                        <div class="w-auto mr-14">
+                            <a href="{{ route('front.index') }}" class="inline-block">
+                                <div class="bg-white rounded-lg px-3 py-1.5 flex items-center justify-center shadow-lg" style="height: 42px;">
+                                    <img class="h-full object-contain" src="{{ (isset($frontSetting->header_logo) && $frontSetting->header_logo !== 'dark.png') ? $frontSetting->header_logo_url : asset('uploads/website/website_f4dupn1tkzjmpgsaelka.png') }}" alt="" style="max-height: 100%;">
+                                </div>
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
             <div class="w-auto">
                 <div class="flex flex-wrap items-center">
                     <div class="w-auto hidden lg:block">
                         <ul class="flex items-center mr-10">
-                            <li class="font-heading mr-9 text-gray-900 hover:text-gray-600 text-base">
-                                <a href="{{ route('front.index') }}">
+                            <li class="font-heading mr-9 text-base" style="color: rgba(255,255,255,0.9);">
+                                <a href="{{ route('front.index') }}" style="color: rgba(255,255,255,0.9);">
                                     {{ $frontSetting->home_text }}
                                 </a>
                             </li>
-                            <li class="font-heading mr-9 text-gray-900 hover:text-gray-600 text-base">
-                                <a href="{{ route('front.features') }}">
+                            <li class="font-heading mr-9 text-base" style="color: rgba(255,255,255,0.9);">
+                                <a href="{{ route('front.features') }}" style="color: rgba(255,255,255,0.9);">
                                     {{ $frontSetting->features_text }}
                                 </a>
                             </li>
-                            <li class="font-heading mr-9 text-gray-900 hover:text-gray-600 text-base">
-                                <a href="{{ route('front.pricing') }}">
+                            <li class="font-heading mr-9 text-base" style="color: rgba(255,255,255,0.9);">
+                                <a href="{{ route('front.pricing') }}" style="color: rgba(255,255,255,0.9);">
                                     {{ $frontSetting->pricing_text }}
                                 </a>
                             </li>
-                            <li class="font-heading text-gray-900 hover:text-gray-600 text-base">
-                                <a href="{{ route('front.contact') }}">
+                            <li class="font-heading text-base" style="color: rgba(255,255,255,0.9);">
+                                <a href="{{ route('front.contact') }}" style="color: rgba(255,255,255,0.9);">
                                     {{ $frontSetting->contact_text }}
                                 </a>
                             </li>
@@ -41,21 +44,21 @@
                         <div class="flex gap-2">
                             @if($frontSetting->register_button_show == 1)
                                 <a href="{{ route('front.register') }}"
-                                    class="group relative font-heading block py-1 px-5 text-base text-gray-900 border border-gray-900 overflow-hidden rounded-md">
+                                    class="group relative font-heading block py-1 px-5 text-base overflow-hidden rounded-md" style="color: #ffffff; border: 1px solid rgba(255,255,255,0.7);">
                                     <div
-                                        class="absolute top-0 left-0 transform -translate-y-full group-hover:-translate-y-0 h-full w-full bg-gray-900 transition ease-in-out duration-500">
+                                        class="absolute top-0 left-0 transform -translate-y-full group-hover:-translate-y-0 h-full w-full transition ease-in-out duration-500" style="background: rgba(255,255,255,0.15);">
                                     </div>
-                                    <p class="relative z-10 group-hover:text-white">
+                                    <p class="relative z-10" style="color: #ffffff;">
                                         {{ $frontSetting->register_button_text }}</p>
                                 </a>
                             @endif
                             @if($frontSetting->login_button_show == 1)
                                 <a href="{{ route('main', ['path' => 'admin/login']) }}"
-                                    class="group relative font-heading block py-1 px-5 text-base text-gray-900 border border-gray-900 overflow-hidden rounded-md">
+                                    class="group relative font-heading block py-1 px-5 text-base overflow-hidden rounded-md" style="color: #ffffff; border: 1px solid rgba(255,255,255,0.7);">
                                     <div
-                                        class="absolute top-0 left-0 transform -translate-y-full group-hover:-translate-y-0 h-full w-full bg-gray-900 transition ease-in-out duration-500">
+                                        class="absolute top-0 left-0 transform -translate-y-full group-hover:-translate-y-0 h-full w-full transition ease-in-out duration-500" style="background: rgba(255,255,255,0.15);">
                                     </div>
-                                    <p class="relative z-10 group-hover:text-white">
+                                    <p class="relative z-10" style="color: #ffffff;">
                                         {{ $frontSetting->login_button_text }}</p>
                                 </a>
                             @endif
@@ -99,13 +102,14 @@
                     </div>
                 </div>
             </div>
+            </div>
         </div>
-        @include('front.sections.header_mobile')
-    </section>
+    </div>
+    @include('front.sections.header_mobile')
     <div class="container mx-auto px-8">
         @if($showFullHeader)
             @include('front.includes.home_header')
-        @else
+        @elseif(!isset($hideBreadcrumb) || !$hideBreadcrumb)
             @include('front.includes.breadcrumb')
         @endif
     </div>

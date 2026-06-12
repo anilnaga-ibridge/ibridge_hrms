@@ -2,8 +2,8 @@
     <div
         :style="
             themeMode == 'dark'
-                ? { background: '#141414', height: '100vh' }
-                : { background: '#fff', height: '100vh' }
+                ? { background: '#141414', minHeight: '70vh', padding: '60px 0' }
+                : { background: '#fff', minHeight: '70vh', padding: '60px 0' }
         "
     >
         <a-row class="main-container-div">
@@ -109,7 +109,7 @@
 </template>
 
 <script>
-import { defineComponent, reactive, ref } from "vue";
+import { defineComponent, reactive, ref, onMounted, onUnmounted } from "vue";
 import { useAuthStore } from "../../store/authStore";
 import { useRouter } from "vue-router";
 import common from "../../../common/composable/common";
@@ -123,6 +123,20 @@ export default defineComponent({
     setup() {
         const { addEditRequestAdmin, loading, rules } = apiAdmin();
         const { globalSetting, appType, themeMode } = common();
+
+        onMounted(() => {
+            const header = document.getElementById('landing-header');
+            const footer = document.getElementById('landing-footer');
+            if (header) header.style.display = 'block';
+            if (footer) footer.style.display = 'block';
+        });
+
+        onUnmounted(() => {
+            const header = document.getElementById('landing-header');
+            const footer = document.getElementById('landing-footer');
+            if (header) header.style.display = 'none';
+            if (footer) footer.style.display = 'none';
+        });
         const loginBackground = globalSetting.value.login_image_url;
         const authStore = useAuthStore();
         const router = useRouter();

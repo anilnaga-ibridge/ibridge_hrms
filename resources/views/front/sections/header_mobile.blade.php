@@ -6,7 +6,9 @@
                 <div class="flex items-center justify-between -m-2">
                     <div class="w-auto p-2">
                         <a class="inline-block" href="{{ route('front.index') }}">
-                            <img src="{{ asset('uploads/website/website_f4dupn1tkzjmpgsaelka.png') }}" alt="">
+                            <div class="bg-white rounded-lg px-3 py-1.5 flex items-center justify-center shadow-lg" style="height: 42px;">
+                                <img class="h-full object-contain" src="{{ (isset($frontSetting->header_logo) && $frontSetting->header_logo !== 'dark.png') ? $frontSetting->header_logo_url : asset('uploads/website/website_f4dupn1tkzjmpgsaelka.png') }}" alt="" style="max-height: 100%;">
+                            </div>
                         </a>
                     </div>
                     <div class="w-auto p-2">

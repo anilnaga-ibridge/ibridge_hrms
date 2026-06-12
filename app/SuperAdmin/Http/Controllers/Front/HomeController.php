@@ -47,7 +47,7 @@ class HomeController extends FrontBaseController
             ->where('name_key', $this->langKey)
             ->first();
         $allHeaderFeatures = $allHeaderFeatures->credentials;
-        // $allHeaderFeatures = SuperAdminCommon::addUrlToAllSettings($allHeaderFeatures, 'logo');
+        $allHeaderFeatures = SuperAdminCommon::addUrlToAllSettings($allHeaderFeatures, 'image');
         $this->headerFeatures = Common::convertToCollection($allHeaderFeatures);
 
         // Clients
@@ -55,7 +55,7 @@ class HomeController extends FrontBaseController
             ->where('name_key', $this->langKey)
             ->first();
         $clients = $clientsSetting->credentials;
-        // $clients = SuperAdminCommon::addUrlToAllSettings($clients, 'logo');
+        $clients = SuperAdminCommon::addUrlToAllSettings($clients, 'logo');
         $this->frontClients = Common::convertToCollection($clients);
 
         // Testimonials
@@ -63,6 +63,7 @@ class HomeController extends FrontBaseController
             ->where('name_key', $this->langKey)
             ->first();
         $testimonials = $testimonialsSetting->credentials;
+        $testimonials = SuperAdminCommon::addUrlToAllSettings($testimonials, 'image');
         $this->frontTestimonials = Common::convertToCollection($testimonials);
 
         // Features With Images
@@ -70,7 +71,7 @@ class HomeController extends FrontBaseController
             ->where('name_key', $this->langKey)
             ->first();
         $features = $featuresSetting->credentials;
-        // $features = SuperAdminCommon::addUrlToAllSettings($features, 'image');
+        $features = SuperAdminCommon::addUrlToAllSettings($features, 'image');
         $this->allHomePageFeatures = Common::convertToCollection($features);
 
         return view('front.home', $this->data);
@@ -220,13 +221,14 @@ class HomeController extends FrontBaseController
         // Breadcrumb Details
         $this->showFullHeader = false;
         $this->breadcrumbTitle = $this->frontSetting->register_text;
+        $this->hideBreadcrumb = true;
 
         // Header Features
         $allHeaderFeatures = GlobalSettings::where('setting_type', 'header_features')
             ->where('name_key', $this->langKey)
             ->first();
         $allHeaderFeatures = $allHeaderFeatures->credentials;
-        $allHeaderFeatures = SuperAdminCommon::addUrlToAllSettings($allHeaderFeatures, 'logo');
+        $allHeaderFeatures = SuperAdminCommon::addUrlToAllSettings($allHeaderFeatures, 'image');
         $this->headerFeatures = Common::convertToCollection($allHeaderFeatures);
 
         return view('front.register', $this->data);

@@ -10,6 +10,10 @@
     <meta name="msapplication-TileImage" href="{{ $company->small_light_logo_url }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:300,400,600,700&display=swap">
 
+    @if (isset($frontSetting))
+        @include('front.sections.styles')
+    @endif
+
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0b59a9">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -73,6 +77,12 @@
 </head>
 
 <body>
+    @if (isset($frontSetting))
+        <div id="landing-header" style="display: none;">
+            @include('front.sections.header')
+        </div>
+    @endif
+
     <div id="app">
         <div class="loading-app-container">
             <div class="ant-result ant-result-info">
@@ -132,6 +142,12 @@
             };
         </script>
         <script type="text/javascript" src="https://app.getbeamer.com/js/beamer-embed.js" defer="defer"></script>
+    @endif
+
+    @if (isset($frontSetting))
+        <div id="landing-footer" style="display: none;">
+            @include('front.sections.footer')
+        </div>
     @endif
 
     @vite('resources/js/app.js')

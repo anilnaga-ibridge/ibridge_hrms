@@ -1,7 +1,7 @@
 @extends('front.front_layouts')
 
 @section('content')
-<section class="relative pt-32 pb-36 bg-gradient-gray2 overflow-hidden">
+<section class="relative pt-20 pb-36 bg-gradient-gray2 overflow-hidden">
     <img class="absolute top-1/2 transform -translate-y-1/2 left-0" src="{{ $frontSetting->register_background_url }}" alt="">
     <div class="relative z-10 container mx-auto px-4">
         <div class="flex flex-wrap -m-6">
@@ -66,12 +66,8 @@
             </div>
             <div class="w-full md:w-1/2 p-6">
                 <div class="md:max-w-lg ml-auto">
-                    <div class="flex flex-wrap -m-6">
-                        <div class="flex flex-wrap w-full lg:-m-3">
-                            <div class="max-w-max mx-auto">
-                                @include('front.includes.header_feature_lists')
-                            </div>
-                        </div>
+                    <div class="max-w-max mx-auto">
+                        @include('front.includes.header_feature_lists')
                     </div>
                 </div>
             </div>

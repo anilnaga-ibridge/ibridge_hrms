@@ -25,8 +25,9 @@ class WebsiteSettingsController extends ApiBaseController
         $settingData = $settings->credentials;
 
         // Generating Image Url
-        $settingData = Common::addWebsiteImageUrl($settingData, 'website_logo');
-        $settingData = Common::addWebsiteImageUrl($settingData, 'header_image');
+        $settingData = Common::addWebsiteImageUrl($settingData, 'header_logo');
+        $settingData = Common::addWebsiteImageUrl($settingData, 'header_sidebar_logo');
+        $settingData = Common::addWebsiteImageUrl($settingData, 'footer_logo');
         $settingData = Common::addWebsiteImageUrl($settingData, 'header_background_image');
 
         return $settingData;

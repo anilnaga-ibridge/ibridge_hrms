@@ -34,7 +34,7 @@ Route::get('{path}', function () {
             $company = Company::first();
         }
 
-        return view('welcome', [
+        $data = [
             'appName' => $appName,
             'appVersion' => preg_replace("/\r|\n/", "", $appVersion),
             'installedModules' => $modulesData['installed_modules'],
@@ -44,10 +44,47 @@ Route::get('{path}', function () {
             'appVersion' => $appVersion,
             'appEnv' => env('APP_ENV'),
             'appType' => 'saas',
-            'loadingLangMessageLang' => $loadingLangMessageLang->value,
+            'loadingLangMessageLang' => $loadingLangMessageLang ? $loadingLangMessageLang->value : '',
             'defaultLangKey' => $lang->key,
             'loadingImage' => $company->light_logo_url,
-        ]);
+        ];
+
+        if (request()->is('admin/login') || request()->path() == 'admin/login' || request()->route('path') == 'admin/login') {
+            $langKey = front_lang_key();
+            $selectedLang = Lang::where('key', $langKey)->first();
+            $allLangs = Lang::where('enabled', 1)->get();
+
+            $frontSettings = \App\SuperAdmin\Models\GlobalSettings::where('setting_type', 'website_settings')
+                ->where('name_key', $langKey)
+                ->first();
+            $settings = $frontSettings->credentials;
+            $settings = Common::addWebsiteImageUrl($settings, 'header_logo');
+            $settings = Common::addWebsiteImageUrl($settings, 'header_sidebar_logo');
+            $settings = Common::addWebsiteImageUrl($settings, 'footer_logo');
+            $settings = Common::addWebsiteImageUrl($settings, 'header_background_image');
+            $frontSetting = (object) $settings;
+
+            $showFullHeader = false;
+            $breadcrumbTitle = $frontSetting->register_text;
+            $hideBreadcrumb = true;
+
+            $footerPagesSetting = \App\SuperAdmin\Models\GlobalSettings::where('setting_type', 'footer_pages')
+                ->where('name_key', $langKey)
+                ->first();
+            $footerPages = $footerPagesSetting->credentials;
+            $footerPages = Common::convertToCollection($footerPages);
+
+            $data['langKey'] = $langKey;
+            $data['selectedLang'] = $selectedLang;
+            $data['allLangs'] = $allLangs;
+            $data['frontSetting'] = $frontSetting;
+            $data['showFullHeader'] = $showFullHeader;
+            $data['breadcrumbTitle'] = $breadcrumbTitle;
+            $data['hideBreadcrumb'] = $hideBreadcrumb;
+            $data['footerPages'] = $footerPages;
+        }
+
+        return view('welcome', $data);
     } else {
         return redirect('/install');
     }

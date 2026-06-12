@@ -233,9 +233,16 @@ class Common
     {
         if ($settingData && array_key_exists($keyName, $settingData)) {
             if ($settingData[$keyName] != '') {
-                $imagePath = self::getFolderPath('websiteImagePath');
-
-                $settingData[$keyName . '_url'] = Common::getFileUrl($imagePath, $settingData[$keyName]);
+                $fileName = $settingData[$keyName];
+                if (file_exists(public_path('uploads/website/' . $fileName))) {
+                    $imagePath = self::getFolderPath('websiteImagePath');
+                    $settingData[$keyName . '_url'] = Common::getFileUrl($imagePath, $fileName);
+                } elseif (file_exists(public_path('images/' . $fileName))) {
+                    $settingData[$keyName . '_url'] = asset('images/' . $fileName);
+                } else {
+                    $imagePath = self::getFolderPath('websiteImagePath');
+                    $settingData[$keyName . '_url'] = Common::getFileUrl($imagePath, $fileName);
+                }
             } else {
                 $settingData[$keyName] = null;
                 $settingData[$keyName . '_url'] = asset('images/website.png');
