@@ -1,6 +1,9 @@
 import { forEach } from "lodash-es";
 
 const checkUserPermission = (permissionName, user) => {
+    if (!user || !user.role) {
+        return false;
+    }
     var permissionAllowed = user.role.name == "admin" ? true : false;
 
     forEach(user.role.perms, (permission) => {

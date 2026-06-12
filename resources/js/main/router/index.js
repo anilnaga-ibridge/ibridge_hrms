@@ -24,6 +24,8 @@ import AssignedSurveyRoutes from "./assignedSurvey";
 import Offboardings from "./offboardings";
 import LetterHeadRoutes from "./letterHead";
 import Reports from "./reports";
+import ProjectRoutes from "./projects";
+import TaskRoutes from "./tasks";
 import { checkUserPermission } from "../../common/scripts/functions";
 
 import FrontRoutes from "./front";
@@ -57,6 +59,8 @@ const router = createRouter({
         },
         ...AuthRoutes,
         ...DashboardRoutes,
+        ...ProjectRoutes,
+        ...TaskRoutes,
         ...AppreciationsRoutes,
         ...LeavesRoutes,
         ...HolidayRoutes,

@@ -109,6 +109,10 @@ use App\Observers\SalaryGroupObserver;
 use App\Observers\SalaryGroupUserObserver;
 use App\Observers\Self\SelfComplaintObserver;
 use App\Observers\UserDocumentObserver;
+use App\Observers\TaskObserver;
+use App\Models\Task;
+use App\Observers\ProjectObserver;
+use App\Models\Project;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -185,6 +189,12 @@ class EventServiceProvider extends ServiceProvider
 
             // Self Observer
             SelfComplaint::observe(SelfComplaintObserver::class);
+
+            // Task Observer
+            Task::observe(TaskObserver::class);
+
+            // Project Observer
+            Project::observe(ProjectObserver::class);
 
             if ($appType == 'saas') {
                 Company::observe(CompanyObserver::class);

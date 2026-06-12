@@ -125,6 +125,32 @@
                         <HomeOutlined />
                         <span>{{ $t("menu.dashboard") }}</span>
                     </a-menu-item>
+                    <a-menu-item
+                        v-if="permsArray.includes('admin')"
+                        @click="
+                            () => {
+                                menuSelected();
+                                $router.push({ name: 'admin.projects.index' });
+                            }
+                        "
+                        key="projects"
+                    >
+                        <ProjectOutlined />
+                        <span>{{ $t("menu.projects") }}</span>
+                    </a-menu-item>
+                    <a-menu-item
+                        v-if="permsArray.includes('admin')"
+                        @click="
+                            () => {
+                                menuSelected();
+                                $router.push({ name: 'admin.tasks.index' });
+                            }
+                        "
+                        key="tasks"
+                    >
+                        <CheckSquareOutlined />
+                        <span>{{ $t("menu.tasks") }}</span>
+                    </a-menu-item>
                     <a-sub-menu
                         key="staff"
                         v-if="
@@ -1117,6 +1143,32 @@
                     </a-menu-item>
 
                     <a-menu-item
+                        @click="
+                            () => {
+                                menuSelected();
+                                $router.push({ name: 'admin.self.projects.index' });
+                            }
+                        "
+                        key="projects"
+                    >
+                        <ProjectOutlined />
+                        <span>{{ $t("menu.projects") }}</span>
+                    </a-menu-item>
+
+                    <a-menu-item
+                        @click="
+                            () => {
+                                menuSelected();
+                                $router.push({ name: 'admin.self.tasks.index' });
+                            }
+                        "
+                        key="tasks"
+                    >
+                        <CheckSquareOutlined />
+                        <span>{{ $t("menu.tasks") }}</span>
+                    </a-menu-item>
+
+                    <a-menu-item
                         v-if="willSubscriptionModuleVisible('assets')"
                         @click="
                             () => {
@@ -1520,6 +1572,8 @@ import {
     TagOutlined,
     LineChartOutlined,
     PicCenterOutlined,
+    ProjectOutlined,
+    CheckSquareOutlined,
 } from "@ant-design/icons-vue";
 import common from "../../common/composable/common";
 const { Sider } = Layout;
@@ -1570,6 +1624,8 @@ export default defineComponent({
         CopyrightOutlined,
         LineChartOutlined,
         PicCenterOutlined,
+        ProjectOutlined,
+        CheckSquareOutlined,
     },
     setup(props, { emit }) {
         const {

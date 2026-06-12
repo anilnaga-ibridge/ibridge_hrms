@@ -48,6 +48,9 @@ ApiRoute::group(['prefix' => 'self', 'namespace' => 'App\Http\Controllers\Api\Se
     ApiRoute::resource('get-assigned-survey', 'FeedbackUserController', $options);
     ApiRoute::resource('warnings', 'WarningController', $options);
 
+    ApiRoute::resource('projects', 'ProjectController', ['as' => 'api', 'only' => ['index', 'store', 'update', 'destroy']]);
+    ApiRoute::resource('tasks', 'TaskController', ['as' => 'api', 'only' => ['index', 'store', 'update', 'destroy']]);
+
     ApiRoute::resource('complaints', 'ComplaintController', ['as' => 'api']);
     ApiRoute::resource('leaves', 'LeaveController', ['as' => 'api']);
     ApiRoute::resource('resignations', 'ResignationController', ['as' => 'api']);

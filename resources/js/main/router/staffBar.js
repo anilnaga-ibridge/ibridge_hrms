@@ -277,6 +277,39 @@ export default [
                     menuKey: (route) => "expenses",
                 },
             },
+            {
+                path: "projects",
+                component: () => import("../views/self/projects/index.vue"),
+                name: "admin.self.projects.index",
+                meta: {
+                    requireAuth: true,
+                    menuParent: "projects",
+                    barKey: "self",
+                    menuKey: (route) => "projects",
+                },
+            },
+            {
+                path: "tasks",
+                component: () => import("../views/self/tasks/index.vue"),
+                name: "admin.self.tasks.index",
+                meta: {
+                    requireAuth: true,
+                    menuParent: "tasks",
+                    barKey: "self",
+                    menuKey: (route) => "tasks",
+                },
+            },
+            {
+                path: "tasks/detailed-overview",
+                component: () => import("../views/self/tasks/DetailedOverview.vue"),
+                name: "admin.self.tasks.detailed_overview",
+                meta: {
+                    requireAuth: true,
+                    menuParent: "tasks",
+                    barKey: "self",
+                    menuKey: (route) => "tasks",
+                },
+            },
         ],
     },
 ];

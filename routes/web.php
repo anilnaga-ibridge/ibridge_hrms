@@ -98,6 +98,8 @@ ApiRoute::group(['namespace' => 'App\Http\Controllers\Api'], function () {
 
         ApiRoute::resource('shifts', 'ShiftController', $options);
         ApiRoute::resource('departments', 'DepartmentController', $options);
+        ApiRoute::resource('projects', 'ProjectController', $options);
+        ApiRoute::resource('tasks', 'TaskController', $options);
         ApiRoute::resource('designations', 'DesignationController', $options);
         ApiRoute::resource('leave-types', 'LeaveTypeController', $options);
         ApiRoute::resource('awards', 'AwardController', $options);
