@@ -29,7 +29,7 @@ trait UserTraits
         $user    = user();
 
         // User don't have any role
-        if (! $user->role || ! $user->is_manager) {
+        if (! $user->role || ($user->role->name != 'admin' && ! $user->is_manager)) {
             throw new ApiException("Don't have valid permission");
         }
 
