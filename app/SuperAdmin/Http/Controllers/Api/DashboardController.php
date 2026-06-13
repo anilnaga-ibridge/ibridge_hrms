@@ -36,9 +36,9 @@ class DashboardController extends ApiBaseController
             'dark_logo' => 'dark.png',
             'dark_logo_url' => asset('uploads/website/website_f4dupn1tkzjmpgsaelka.png'),
             'small_dark_logo' => 'small_dark.png',
-            'small_dark_logo_url' => asset('uploads/website/website_f4dupn1tkzjmpgsaelka.png'),
+            'small_dark_logo_url' => asset('uploads/website/website_small_icon.png'),
             'small_light_logo' => 'small_light.png',
-            'small_light_logo_url' => asset('uploads/website/website_f4dupn1tkzjmpgsaelka.png'),
+            'small_light_logo_url' => asset('uploads/website/website_small_icon.png'),
         ]);
     }
 

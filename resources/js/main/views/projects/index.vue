@@ -248,7 +248,7 @@ export default {
             ];
 
             crudVariables.tableUrl.value = {
-                url: "projects?fields=id,xid,name,status,start_date,deadline,description,members,member_details,customer,calculate_progress,progress,billing_type,total_rate,estimated_hours,tags,send_email&limit=1000",
+                url: "projects?fields=id,xid,name,status,start_date,deadline,description,members,member_details,customer,customer_id,calculate_progress,progress,billing_type,total_rate,estimated_hours,tags,send_email&limit=1000",
             };
             crudVariables.table.filterableColumns = filterableColumns;
 
@@ -260,6 +260,7 @@ export default {
             crudVariables.langKey.value = "project";
             crudVariables.initData.value = { ...initData };
             crudVariables.formData.value = { ...initData };
+            crudVariables.hashableColumns.value = ["customer_id"];
         });
 
         const getStatusColor = (status) => {

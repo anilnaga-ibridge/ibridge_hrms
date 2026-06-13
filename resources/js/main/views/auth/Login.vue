@@ -94,7 +94,6 @@
                                     </a-button>
                                 </a-form-item>
                             </a-form>
-                            <DemoCredentials :credentials="credentials" />
                         </a-card>
                     </a-col>
                 </a-row>
@@ -114,11 +113,9 @@ import { useAuthStore } from "../../store/authStore";
 import { useRouter } from "vue-router";
 import common from "../../../common/composable/common";
 import apiAdmin from "../../../common/composable/apiAdmin";
-import DemoCredentials from "./DemoCredentials.vue";
 
 export default defineComponent({
     components: {
-        DemoCredentials,
     },
     setup() {
         const { addEditRequestAdmin, loading, rules } = apiAdmin();

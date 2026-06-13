@@ -95,12 +95,12 @@ class Company extends BaseModel
 
     public function getSmallDarkLogoUrlAttribute()
     {
-        return asset('uploads/website/website_f4dupn1tkzjmpgsaelka.png');
+        return asset('uploads/website/website_small_icon.png');
     }
 
     public function getSmallLightLogoUrlAttribute()
     {
-        return asset('uploads/website/website_f4dupn1tkzjmpgsaelka.png');
+        return asset('uploads/website/website_small_icon.png');
     }
 
     public function getLoginImageUrlAttribute()

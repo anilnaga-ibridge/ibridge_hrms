@@ -113,6 +113,8 @@ use App\Observers\TaskObserver;
 use App\Models\Task;
 use App\Observers\ProjectObserver;
 use App\Models\Project;
+use App\Observers\CustomerObserver;
+use App\Models\Customer;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -195,6 +197,9 @@ class EventServiceProvider extends ServiceProvider
 
             // Project Observer
             Project::observe(ProjectObserver::class);
+
+            // Customer Observer
+            Customer::observe(CustomerObserver::class);
 
             if ($appType == 'saas') {
                 Company::observe(CompanyObserver::class);

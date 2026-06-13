@@ -130,6 +130,19 @@
                         @click="
                             () => {
                                 menuSelected();
+                                $router.push({ name: 'admin.customers.index' });
+                            }
+                        "
+                        key="customers"
+                    >
+                        <TeamOutlined />
+                        <span>{{ $t("menu.customers") }}</span>
+                    </a-menu-item>
+                    <a-menu-item
+                        v-if="permsArray.includes('admin')"
+                        @click="
+                            () => {
+                                menuSelected();
                                 $router.push({ name: 'admin.projects.index' });
                             }
                         "

@@ -26,6 +26,7 @@ import LetterHeadRoutes from "./letterHead";
 import Reports from "./reports";
 import ProjectRoutes from "./projects";
 import TaskRoutes from "./tasks";
+import CustomerRoutes from "./customers";
 import { checkUserPermission } from "../../common/scripts/functions";
 
 import FrontRoutes from "./front";
@@ -61,6 +62,7 @@ const router = createRouter({
         ...DashboardRoutes,
         ...ProjectRoutes,
         ...TaskRoutes,
+        ...CustomerRoutes,
         ...AppreciationsRoutes,
         ...LeavesRoutes,
         ...HolidayRoutes,

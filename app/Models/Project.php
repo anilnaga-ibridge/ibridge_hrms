@@ -12,24 +12,26 @@ class Project extends BaseModel
 {
     protected $table = 'projects';
 
-    protected $default = ['xid', 'name', 'status', 'start_date', 'deadline', 'description', 'members', 'member_details', 'customer', 'calculate_progress', 'progress', 'billing_type', 'total_rate', 'estimated_hours', 'tags', 'send_email'];
+    protected $default = ['xid', 'name', 'status', 'start_date', 'deadline', 'description', 'members', 'member_details', 'customer', 'customer_id', 'calculate_progress', 'progress', 'billing_type', 'total_rate', 'estimated_hours', 'tags', 'send_email'];
 
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
     protected $hidden = ['id', 'company_id', 'created_by'];
 
-    protected $appends = ['xid', 'x_company_id', 'x_created_by', 'member_details'];
+    protected $appends = ['xid', 'x_company_id', 'x_created_by', 'x_customer_id', 'member_details'];
 
     protected $filterable = ['name', 'status', 'customer'];
 
     protected $hashableGetterFunctions = [
         'getXCompanyIdAttribute' => 'company_id',
         'getXCreatedByAttribute' => 'created_by',
+        'getXCustomerIdAttribute' => 'customer_id',
     ];
 
     protected $casts = [
         'company_id' => Hash::class . ':hash',
         'created_by' => Hash::class . ':hash',
+        'customer_id' => Hash::class . ':hash',
         'members' => 'array',
         'start_date' => 'date',
         'deadline' => 'date',
@@ -79,5 +81,22 @@ class Project extends BaseModel
     public function tasks()
     {
         return $this->hasMany(Task::class, 'project_id', 'id');
+    }
+
+    public function projectCustomer()
+    {
+        return $this->belongsTo(Customer::class, 'customer_id', 'id');
+    }
+
+    public function getCustomerAttribute($value)
+    {
+        if ($this->customer_id) {
+            if ($this->relationLoaded('projectCustomer')) {
+                return $this->projectCustomer ? $this->projectCustomer->name : $value;
+            }
+            $customer = Customer::find($this->customer_id);
+            return $customer ? $customer->name : $value;
+        }
+        return $value;
     }
 }

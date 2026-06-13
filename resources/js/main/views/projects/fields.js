@@ -2,13 +2,14 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 const fields = () => {
-    const url = "projects?fields=id,xid,name,status,start_date,deadline,description,members,member_details,customer,calculate_progress,progress,billing_type,total_rate,estimated_hours,tags,send_email";
+    const url = "projects?fields=id,xid,name,status,start_date,deadline,description,members,member_details,customer,customer_id,calculate_progress,progress,billing_type,total_rate,estimated_hours,tags,send_email";
     const addEditUrl = "projects";
     const { t } = useI18n();
 
     const initData = {
         name: "",
         customer: "",
+        customer_id: undefined,
         calculate_progress: false,
         progress: 0,
         billing_type: "fixed_rate",

@@ -26,14 +26,26 @@
                 <a-col :xs="24" :sm="24" :md="12" :lg="12">
                     <a-form-item
                         label="Customer"
-                        name="customer"
-                        :help="rules.customer ? rules.customer.message : null"
-                        :validateStatus="rules.customer ? 'error' : null"
+                        name="customer_id"
+                        :help="rules.customer_id ? rules.customer_id.message : null"
+                        :validateStatus="rules.customer_id ? 'error' : null"
                     >
-                        <a-input
-                            v-model:value="formData.customer"
-                            placeholder="Please Enter Customer Name"
-                        />
+                        <a-select
+                            v-model:value="formData.customer_id"
+                            placeholder="Select Customer"
+                            style="width: 100%"
+                            show-search
+                            :filterOption="filterOption"
+                            allow-clear
+                        >
+                            <a-select-option
+                                v-for="cust in customers"
+                                :key="cust.xid"
+                                :value="cust.xid"
+                            >
+                                {{ cust.name }}
+                            </a-select-option>
+                        </a-select>
                     </a-form-item>
                 </a-col>
             </a-row>
@@ -256,10 +268,14 @@ export default defineComponent({
     setup(props, { emit }) {
         const { addEditRequestAdmin, loading, rules } = apiAdmin();
         const users = ref([]);
+        const customers = ref([]);
 
         onMounted(() => {
             axiosAdmin.get("users?limit=10000").then((response) => {
                 users.value = response.data;
+            });
+            axiosAdmin.get("customers?limit=10000").then((response) => {
+                customers.value = response.data;
             });
         });
 
@@ -289,6 +305,7 @@ export default defineComponent({
             onClose,
             onSubmit,
             users,
+            customers,
             filterOption,
         };
     },
