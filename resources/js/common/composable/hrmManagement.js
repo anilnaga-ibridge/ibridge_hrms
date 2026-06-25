@@ -3,6 +3,17 @@ import { useI18n } from "vue-i18n";
 import { find, forEach } from "lodash-es";
 import common from "./common";
 
+const escapeHtml = (string) => {
+    if (!string) return '';
+    return string
+        .toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+};
+
 const hrmManagement = () => {
     const { dayjs, appSetting, user, formatAmountCurrency, formatDate } =
         common();
@@ -59,6 +70,7 @@ const hrmManagement = () => {
                         { name: "EMPLOYEE_NOTICE_PERIOD_START_DATE" },
                         { name: "EMPLOYEE_DOB" },
                         { name: "EMPLOYEE_DESIGNATION" },
+                        { name: "EMPLOYEE_PROFILE_IMAGE" },
                     ],
                 });
             }
@@ -73,6 +85,7 @@ const hrmManagement = () => {
                         { name: "SIGNATORY" },
                         { name: "SIGNATORY_DEPARTMENT" },
                         { name: "COMPANY_NAME" },
+                        { name: "COMPANY_LOGO" },
                         { name: "OFFICE_END_TIME" },
                         { name: "CURRENT_MONTH" },
                         { name: "CURRENT_YEAR" },
@@ -217,7 +230,7 @@ const hrmManagement = () => {
 
         resetSelectformOption.value.push({
             name: "CONTACT_ADDRESS",
-            value: appSetting.value.address ? appSetting.value.address : null,
+            value: appSetting.value.address ? escapeHtml(appSetting.value.address) : null,
         });
         resetSelectformOption.value.push({
             name: "SIGNATORY_DESIGNATION",
@@ -244,7 +257,21 @@ const hrmManagement = () => {
         });
         resetSelectformOption.value.push({
             name: "COMPANY_NAME",
-            value: appSetting.value ? appSetting.value.name : null,
+            value: appSetting.value ? escapeHtml(appSetting.value.name) : null,
+        });
+        resetSelectformOption.value.push({
+            name: "EMPLOYEE_PROFILE_IMAGE",
+            value:
+                letterHeadAppreciation.value &&
+                letterHeadAppreciation.value.profile_image_url
+                    ? letterHeadAppreciation.value.profile_image_url
+                    : null,
+        });
+        resetSelectformOption.value.push({
+            name: "COMPANY_LOGO",
+            value: appSetting.value && appSetting.value.light_logo_url
+                ? `<img src="${escapeHtml(appSetting.value.light_logo_url)}" class="company-logo" style="max-height: 50px; max-width: 180px; display: block; margin: 0 auto; object-fit: contain;" />`
+                : "",
         });
         resetSelectformOption.value.push({
             name: "SIGNATORY_DEPARTMENT",

@@ -28,6 +28,8 @@ class EmployeeSpecificLeaveCount extends BaseModel
 
     protected $casts = [
         'total_leaves' => 'integer',
+        'monthly_leave_expiry_cycle' => 'integer',
+        'max_leaves_per_month' => 'integer',
         'user_id' => Hash::class . ':hash',
         'leave_type_id' => Hash::class . ':hash',
     ];

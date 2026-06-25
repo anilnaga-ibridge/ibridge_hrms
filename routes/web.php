@@ -44,6 +44,10 @@ ApiRoute::group(['namespace' => 'App\Http\Controllers\Api'], function () {
         ApiRoute::get('timezones', ['as' => 'api.extra.user', 'uses' => 'AuthController@getAllTimezones']);
         ApiRoute::get('get-all-employees', ['as' => 'api.extra.get-all-employees', 'uses' => 'AuthController@toGetAllEmployeeProfile']);
 
+        // Notifications
+        ApiRoute::get('notifications', ['as' => 'api.extra.notifications', 'uses' => 'NotificationController@index']);
+        ApiRoute::post('notifications/mark-read', ['as' => 'api.extra.notifications.mark-read', 'uses' => 'NotificationController@markRead']);
+
         // Dashboard
         ApiRoute::get('hrm/dashboard/today-attendance-users', ['as' => 'api.hrm.dashboard.today-attendance-users', 'uses' => 'HrmDashboardController@todayAttendanceUsers']);
         ApiRoute::get('hrm/dashboard/pending-leaves', ['as' => 'api.hrm.dashboard.pending-leaves', 'uses' => 'HrmDashboardController@pendingLeaves']);
@@ -62,6 +66,13 @@ ApiRoute::group(['namespace' => 'App\Http\Controllers\Api'], function () {
         ApiRoute::get('leaves/remaining-leaves', ['as' => 'api.leaves.remaining-leaves', 'uses' => 'LeaveController@remainingLeaves']);
         ApiRoute::get('leaves/unpaid-leaves', ['as' => 'api.leaves.unpaid-leaves', 'uses' => 'LeaveController@unpaidLeaves']);
         ApiRoute::get('leaves/paid-leaves', ['as' => 'api.leaves.paid-leaves', 'uses' => 'LeaveController@paidLeaves']);
+        ApiRoute::post('employee-monthly-leaves/process', ['as' => 'api.employee-monthly-leaves.process', 'uses' => 'EmployeeMonthlyLeaveController@process']);
+        ApiRoute::get('employee-monthly-leaves/summary', ['as' => 'api.employee-monthly-leaves.summary', 'uses' => 'EmployeeMonthlyLeaveController@summary']);
+        ApiRoute::get('employee-monthly-leaves/employee-summary', ['as' => 'api.employee-monthly-leaves.employee-summary', 'uses' => 'EmployeeMonthlyLeaveController@employeeSummary']);
+        ApiRoute::get('employee-monthly-leaves/settings', ['as' => 'api.employee-monthly-leaves.settings', 'uses' => 'EmployeeMonthlyLeaveController@settings']);
+        ApiRoute::put('employee-monthly-leaves/settings', ['as' => 'api.employee-monthly-leaves.update-settings', 'uses' => 'EmployeeMonthlyLeaveController@updateSettings']);
+        ApiRoute::post('employee-monthly-leaves/credit', ['as' => 'api.employee-monthly-leaves.credit', 'uses' => 'EmployeeMonthlyLeaveController@credit']);
+        ApiRoute::resource('employee-monthly-leaves', 'EmployeeMonthlyLeaveController', ['as' => 'api', 'only' => ['index']]);
         ApiRoute::resource('leaves', 'LeaveController', ['as' => 'api']);
     });
 
@@ -97,6 +108,22 @@ ApiRoute::group(['namespace' => 'App\Http\Controllers\Api'], function () {
         ApiRoute::resource('holidays', 'HolidayController', $options);
 
         ApiRoute::resource('shifts', 'ShiftController', $options);
+        ApiRoute::resource('shift-rosters', 'ShiftRosterController', $options);
+        ApiRoute::post('shift-rosters/weekly', ['as' => 'api.shift-rosters.weekly', 'uses' => 'ShiftRosterController@weekly']);
+        ApiRoute::post('shift-rosters/assign', ['as' => 'api.shift-rosters.assign', 'uses' => 'ShiftRosterController@assign']);
+        ApiRoute::post('shift-rosters/remove', ['as' => 'api.shift-rosters.remove', 'uses' => 'ShiftRosterController@remove']);
+        ApiRoute::resource('rotational-teams', 'RotationalTeamController', $options);
+        ApiRoute::post('rotational-teams/members', ['as' => 'api.rotational-teams.members', 'uses' => 'RotationalTeamController@members']);
+        ApiRoute::post('rotational-teams/assign-members', ['as' => 'api.rotational-teams.assign-members', 'uses' => 'RotationalTeamController@assignMembers']);
+        ApiRoute::post('rotational-teams/transfer-member', ['as' => 'api.rotational-teams.transfer-member', 'uses' => 'RotationalTeamController@transferMember']);
+        ApiRoute::post('rotational-teams/schedule', ['as' => 'api.rotational-teams.schedule', 'uses' => 'RotationalTeamController@schedule']);
+        ApiRoute::post('rotational-teams/update-schedule', ['as' => 'api.rotational-teams.update-schedule', 'uses' => 'RotationalTeamController@updateSchedule']);
+        ApiRoute::post('rotational-teams/auto-generate', ['as' => 'api.rotational-teams.auto-generate', 'uses' => 'RotationalTeamController@autoGenerate']);
+        ApiRoute::post('rotational-teams/unassigned-employees', ['as' => 'api.rotational-teams.unassigned-employees', 'uses' => 'RotationalTeamController@unassignedEmployees']);
+        ApiRoute::post('rotational-teams/available-employees', ['as' => 'api.rotational-teams.available-employees', 'uses' => 'RotationalTeamController@availableEmployees']);
+        ApiRoute::post('rotational-teams/all-employees', ['as' => 'api.rotational-teams.all-employees', 'uses' => 'RotationalTeamController@allEmployees']);
+        ApiRoute::post('rotational-teams/distribute-unassigned', ['as' => 'api.rotational-teams.distribute-unassigned', 'uses' => 'RotationalTeamController@distributeUnassigned']);
+        ApiRoute::post('rotational-teams/clear-schedule', ['as' => 'api.rotational-teams.clear-schedule', 'uses' => 'RotationalTeamController@clearSchedule']);
         ApiRoute::resource('departments', 'DepartmentController', $options);
         ApiRoute::resource('projects', 'ProjectController', $options);
         ApiRoute::resource('customers', 'CustomerController', $options);
@@ -163,5 +190,21 @@ ApiRoute::group(['namespace' => 'App\Http\Controllers\Api'], function () {
         ApiRoute::get('employee-fields', ['as' => 'api.employee-fields', 'uses' => 'EmployeeFieldsController@getEmployeeFieldsData']);
         ApiRoute::post('update-visible-to-employee', ['as' => 'api.update-visible-to-employee', 'uses' => 'FieldTypesController@updateStatus']);
         ApiRoute::post('employee-specific-leave', ['as' => 'api.employee-specific-leave', 'uses' => 'LeaveTypeController@storeUpdateEmployeeSpecificLeave']);
+
+        // Performance Analytics Routes
+        ApiRoute::get('performance/dashboard/{employeeId}', ['as' => 'api.performance.dashboard', 'uses' => 'PerformanceController@dashboard']);
+        ApiRoute::get('performance/trend/{employeeId}', ['as' => 'api.performance.trend', 'uses' => 'PerformanceController@trend']);
+        ApiRoute::get('performance/kpis/{employeeId}', ['as' => 'api.performance.kpis', 'uses' => 'PerformanceController@kpis']);
+        ApiRoute::get('performance/ranking', ['as' => 'api.performance.ranking', 'uses' => 'PerformanceController@ranking']);
+        ApiRoute::get('performance/top-performers', ['as' => 'api.performance.top-performers', 'uses' => 'PerformanceController@topPerformers']);
+        ApiRoute::get('performance/low-performers', ['as' => 'api.performance.low-performers', 'uses' => 'PerformanceController@lowPerformers']);
+        ApiRoute::get('performance/department-performance', ['as' => 'api.performance.department-performance', 'uses' => 'PerformanceController@departmentPerformance']);
+        ApiRoute::get('performance/score-distribution', ['as' => 'api.performance.score-distribution', 'uses' => 'PerformanceController@scoreDistribution']);
+        ApiRoute::get('performance/needs-training', ['as' => 'api.performance.needs-training', 'uses' => 'PerformanceController@employeesNeedingTraining']);
+        ApiRoute::get('performance/at-risk', ['as' => 'api.performance.at-risk', 'uses' => 'PerformanceController@employeesAtRisk']);
+        ApiRoute::get('performance/promotion-recommendations', ['as' => 'api.performance.promotion-recommendations', 'uses' => 'PerformanceController@promotionRecommendations']);
+        ApiRoute::get('performance/increment-recommendations', ['as' => 'api.performance.increment-recommendations', 'uses' => 'PerformanceController@incrementRecommendations']);
+        ApiRoute::post('performance/calculate', ['as' => 'api.performance.calculate', 'uses' => 'PerformanceController@calculate']);
+        ApiRoute::get('performance/self/dashboard', ['as' => 'api.performance.self.dashboard', 'uses' => 'PerformanceController@selfDashboard']);
     });
 });

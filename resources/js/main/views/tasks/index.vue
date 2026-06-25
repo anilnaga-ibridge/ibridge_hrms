@@ -143,6 +143,7 @@
             :url="addEditUrl"
             @addEditSuccess="addEditSuccess"
             @closed="onCloseAddEdit"
+            @voiceFill="assignNewFormData"
             :formData="formData"
             :data="viewData"
             :pageTitle="pageTitle"
@@ -452,11 +453,17 @@ export default {
             const taskXid = event.dataTransfer.getData("text/plain");
             const task = crudVariables.table.data.find(t => t.xid === taskXid);
             if (task && task.status !== status) {
-                axiosAdmin.put(`tasks/${taskXid}`, {
-                    ...task,
-                    status: status,
-                    _method: "PUT"
-                }).then(() => {
+                const payload = {};
+                for (const key in task) {
+                    if (task[key] !== null && typeof task[key] === "object") {
+                        continue;
+                    }
+                    payload[key] = task[key];
+                }
+                payload.status = status;
+                payload._method = "PUT";
+
+                axiosAdmin.put(`tasks/${taskXid}`, payload).then(() => {
                     fetchTasks();
                 });
             }

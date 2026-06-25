@@ -408,6 +408,79 @@
                                         </a-form-item>
                                     </a-col>
                                 </a-row>
+                                <a-row :gutter="16">
+                                    <a-col :xs="24" :sm="24" :md="8" :lg="8">
+                                        <a-form-item
+                                            :label="$t('hrm_settings.office_latitude')"
+                                            name="office_latitude"
+                                        >
+                                            <a-input
+                                                v-model:value="
+                                                    formData.office_latitude
+                                                "
+                                                :placeholder="
+                                                    $t(
+                                                        'common.placeholder_default_text',
+                                                        [
+                                                            $t(
+                                                                'hrm_settings.office_latitude'
+                                                            ),
+                                                        ]
+                                                    )
+                                                "
+                                            />
+                                        </a-form-item>
+                                    </a-col>
+                                    <a-col :xs="24" :sm="24" :md="8" :lg="8">
+                                        <a-form-item
+                                            :label="$t('hrm_settings.office_longitude')"
+                                            name="office_longitude"
+                                        >
+                                            <a-input
+                                                v-model:value="
+                                                    formData.office_longitude
+                                                "
+                                                :placeholder="
+                                                    $t(
+                                                        'common.placeholder_default_text',
+                                                        [
+                                                            $t(
+                                                                'hrm_settings.office_longitude'
+                                                            ),
+                                                        ]
+                                                    )
+                                                "
+                                            />
+                                        </a-form-item>
+                                    </a-col>
+                                    <a-col :xs="24" :sm="24" :md="8" :lg="8">
+                                        <a-form-item
+                                            :label="$t('hrm_settings.office_location_radius')"
+                                            name="office_location_radius"
+                                        >
+                                            <a-input-number
+                                                v-model:value="
+                                                    formData.office_location_radius
+                                                "
+                                                :placeholder="
+                                                    $t(
+                                                        'common.placeholder_default_text',
+                                                        [
+                                                            $t(
+                                                                'hrm_settings.office_location_radius'
+                                                            ),
+                                                        ]
+                                                    )
+                                                "
+                                                style="width: 100%"
+                                            >
+                                                <template #addonAfter>
+                                                    {{ $t("common.meters") }}
+                                                </template>
+                                            </a-input-number>
+                                        </a-form-item>
+                                    </a-col>
+                                </a-row>
                                 <a-row
                                     :gutter="16"
                                     v-for="formField in formFields"
@@ -750,6 +823,9 @@ export default defineComponent({
             employee_id_start: appSetting.value.employee_id_start,
             employee_id_digits: appSetting.value.employee_id_digits,
             capture_location: appSetting.value.capture_location,
+            office_latitude: appSetting.value.office_latitude,
+            office_longitude: appSetting.value.office_longitude,
+            office_location_radius: appSetting.value.office_location_radius,
         });
         const loading = ref(false);
 

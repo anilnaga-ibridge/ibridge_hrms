@@ -31,4 +31,8 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'sso' => [
+        'secret' => env('SSO_SECRET', 'iBRIDGE_HRM_SECRET_TOKEN_2026'),
+    ],
+
 ];

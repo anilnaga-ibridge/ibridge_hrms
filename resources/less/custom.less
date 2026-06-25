@@ -463,30 +463,58 @@ body::before {
     color: #ffffff !important;
 }
 
-.ant-layout-sider .ant-menu-item-selected {
-    background: rgba(255, 255, 255, 0.18) !important;
-    color: #ffffff !important;
+.ant-layout-sider .ant-menu-item-selected,
+.ant-layout-sider .ant-menu-light .ant-menu-item-selected {
+    background: #ffffff !important;
+    color: #000000 !important;
     font-weight: 600 !important;
 }
 
-.ant-layout-sider .ant-menu-item-selected .anticon {
-    color: #ffffff !important;
+.ant-layout-sider .ant-menu-light .ant-menu-item-selected .anticon,
+.ant-layout-sider .ant-menu-item-selected .anticon,
+.ant-layout-sider .ant-menu-light .ant-menu-item-selected a,
+.ant-layout-sider .ant-menu-item-selected a,
+.ant-layout-sider .ant-menu-light .ant-menu-item-selected span,
+.ant-layout-sider .ant-menu-item-selected span,
+.ant-layout-sider .ant-menu-light .ant-menu-item-selected .ant-menu-title-content,
+.ant-layout-sider .ant-menu-item-selected .ant-menu-title-content {
+    color: #000000 !important;
 }
 
 .ant-layout-sider .ant-menu-submenu-arrow {
     color: rgba(255, 255, 255, 0.82) !important;
 }
 
-.ant-layout-sider .ant-tabs-nav .ant-tabs-tab {
+.ant-layout-sider .sidebar-tabs-dark .ant-tabs-nav .ant-tabs-tab {
     color: rgba(255, 255, 255, 0.75) !important;
 }
 
-.ant-layout-sider .ant-tabs-nav .ant-tabs-tab-active {
+.ant-layout-sider .sidebar-tabs-dark .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
     color: #ffffff !important;
 }
 
-.ant-layout-sider .ant-tabs-ink-bar {
+.ant-layout-sider .sidebar-tabs-dark .ant-tabs-nav .ant-tabs-tab-active .anticon {
+    color: #ffffff !important;
+}
+
+.ant-layout-sider .sidebar-tabs-dark .ant-tabs-ink-bar {
     background: #ffffff !important;
+}
+
+.ant-layout-sider .sidebar-tabs-light .ant-tabs-nav .ant-tabs-tab {
+    color: rgba(0, 0, 0, 0.65) !important;
+}
+
+.ant-layout-sider .sidebar-tabs-light .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: #ffffff !important;
+}
+
+.ant-layout-sider .sidebar-tabs-light .ant-tabs-nav .ant-tabs-tab-active .anticon {
+    color: #ffffff !important;
+}
+
+.ant-layout-sider .sidebar-tabs-light .ant-tabs-ink-bar {
+    background: #7b2a72 !important;
 }
 
 .ant-layout-sider .anticon-close {

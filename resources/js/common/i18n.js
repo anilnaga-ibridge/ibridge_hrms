@@ -1,7 +1,7 @@
 import { nextTick } from 'vue';
 import { createI18n } from 'vue-i18n';
 
-export function setupI18n(options = { locale: 'en', warnHtmlMessage: false }) {
+export function setupI18n(options = { locale: 'en', fallbackLocale: 'en', warnHtmlMessage: false }) {
 	const i18n = createI18n(options)
 	setI18nLanguage(i18n, options.locale)
 	return i18n
@@ -45,6 +45,11 @@ export function setLangsLocaleMessage(res, i18n, locale) {
 
 	// set locale and locale message
 	i18n.global.setLocaleMessage(locale, messages[locale])
+
+	// If active locale is not 'en', also set 'en' locale messages to support fallback
+	if (locale !== 'en' && messages['en'] !== undefined) {
+		i18n.global.setLocaleMessage('en', messages['en'])
+	}
 
 	return nextTick()
 }

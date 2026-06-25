@@ -60,6 +60,17 @@ export default [
                     permission: "leaves_view",
                 },
             },
+            {
+                path: "monthly-leaves",
+                component: () => import("../views/leave/monthly-leaves/index.vue"),
+                name: "admin.monthly-leaves.index",
+                meta: {
+                    requireAuth: true,
+                    menuParent: "leaves",
+                    menuKey: (route) => "monthly_leaves",
+                    permission: "leaves_view",
+                },
+            },
         ],
     },
 ];

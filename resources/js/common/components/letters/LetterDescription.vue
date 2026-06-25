@@ -198,6 +198,7 @@ export default defineComponent({
             if (textEditor.value != undefined) {
                 editor.root.innerHTML = bodyMessage;
             }
+            emit("contentUpdated", bodyMessage);
             // Not execute at onMounted
         };
 

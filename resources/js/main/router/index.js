@@ -29,7 +29,9 @@ import TaskRoutes from "./tasks";
 import CustomerRoutes from "./customers";
 import { checkUserPermission } from "../../common/scripts/functions";
 
+import RotationalWeekoffRoutes from "./rotationalWeekoff";
 import FrontRoutes from "./front";
+import PerformanceRoutes from "./performance";
 
 const appType = window.config.app_type;
 const allActiveModules = window.config.modules;
@@ -60,9 +62,11 @@ const router = createRouter({
         },
         ...AuthRoutes,
         ...DashboardRoutes,
+        ...PerformanceRoutes,
         ...ProjectRoutes,
         ...TaskRoutes,
         ...CustomerRoutes,
+        ...RotationalWeekoffRoutes,
         ...AppreciationsRoutes,
         ...LeavesRoutes,
         ...HolidayRoutes,

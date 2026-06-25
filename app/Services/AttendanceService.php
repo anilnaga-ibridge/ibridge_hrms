@@ -64,13 +64,51 @@ class AttendanceService
                 'ip_address' => $ipAddress
             ]);
 
-            if ($shiftClockInTime['allowed_ip_address'] && count($shiftClockInTime['allowed_ip_address']) > 0) {
-                if (!in_array($ipAddress, $shiftClockInTime['allowed_ip_address'])) {
-                    Log::warning('Invalid IP address for attendance', [
-                        'ip_address' => $ipAddress,
-                        'allowed_ips' => $shiftClockInTime['allowed_ip_address']
-                    ]);
-                    throw new ApiException("You can not mark attendance from this IP address");
+            if (!$shiftClockInTime['is_remote']) {
+                $locationCheckPassed = false;
+
+                if ($company->office_latitude && $company->office_longitude) {
+                    // The company enforces location-based check-in.
+                    // Require latitude and longitude in the request — omitting
+                    // them must not silently skip the check and fall through to
+                    // the (potentially empty) IP allowlist.
+                    $requestLat = request()->latitude;
+                    $requestLng = request()->longitude;
+
+                    if ($requestLat === null || $requestLat === '' ||
+                        $requestLng === null || $requestLng === '') {
+                        Log::warning('GPS coordinates missing for location-enforced attendance', [
+                            'user_id' => $userId,
+                        ]);
+                        throw new ApiException("Your location could not be determined. Please enable GPS and try again.");
+                    }
+
+                    $distance = CommonHrm::calculateDistance(
+                        $company->office_latitude, $company->office_longitude,
+                        $requestLat, $requestLng
+                    );
+                    $radius = $company->office_location_radius ?: 100;
+
+                    if ($distance <= $radius) {
+                        $locationCheckPassed = true;
+                    } else {
+                        Log::warning('GPS location outside office radius', [
+                            'user_id'  => $userId,
+                            'distance' => $distance,
+                            'radius'   => $radius,
+                        ]);
+                        throw new ApiException("You are not within the allowed office location");
+                    }
+                }
+
+                if (!$locationCheckPassed && $shiftClockInTime['allowed_ip_address'] && count($shiftClockInTime['allowed_ip_address']) > 0) {
+                    if (!in_array($ipAddress, $shiftClockInTime['allowed_ip_address'])) {
+                        Log::warning('Invalid IP address for attendance', [
+                            'ip_address'  => $ipAddress,
+                            'allowed_ips' => $shiftClockInTime['allowed_ip_address'],
+                        ]);
+                        throw new ApiException("You can not mark attendance from this IP address");
+                    }
                 }
             }
 

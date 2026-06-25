@@ -20,6 +20,12 @@ class LeaveTypeController extends ApiBaseController
     protected $updateRequest = UpdateRequest::class;
     protected $deleteRequest = DeleteRequest::class;
 
+    protected function modifyIndex($query)
+    {
+        $query->where('leave_types.is_monthly_leave', false);
+
+        return $query;
+    }
 
     public function storing(LeaveType $leaveType)
     {
@@ -27,7 +33,11 @@ class LeaveTypeController extends ApiBaseController
         $loggedUser = user();
 
         $leaveType->created_by = $loggedUser->id;
-        $leaveType->max_leaves_per_month = $leaveType->is_paid ? $request->max_leaves_per_month : null;
+        $leaveType->max_leaves_per_month = $request->max_leaves_per_month;
+
+        if ($leaveType->isMonthlyLeave()) {
+            $leaveType->monthly_leave_expiry_cycle = $request->monthly_leave_expiry_cycle ?? 3;
+        }
 
         return $leaveType;
     }
@@ -35,7 +45,11 @@ class LeaveTypeController extends ApiBaseController
     public function updating(LeaveType $leaveType)
     {
         $request = request();
-        $leaveType->max_leaves_per_month = $leaveType->is_paid ? $request->max_leaves_per_month : null;
+        $leaveType->max_leaves_per_month = $request->max_leaves_per_month;
+
+        if ($leaveType->isMonthlyLeave()) {
+            $leaveType->monthly_leave_expiry_cycle = $request->monthly_leave_expiry_cycle ?? $leaveType->monthly_leave_expiry_cycle;
+        }
 
         return $leaveType;
     }
@@ -73,17 +87,25 @@ class LeaveTypeController extends ApiBaseController
             $record = $recordId ? EmployeeSpecificLeaveCount::find($recordId) : null;
 
             if ($record) {
-                $record->update([
+                $updateData = [
                     'user_id' => $userId,
                     'leave_type_id' => $leaveTypeId,
                     'total_leaves' => $formField['total_leaves'],
-                ]);
+                ];
+                if (isset($formField['monthly_leave_expiry_cycle'])) {
+                    $updateData['monthly_leave_expiry_cycle'] = $formField['monthly_leave_expiry_cycle'];
+                }
+                $record->update($updateData);
             } else {
-                EmployeeSpecificLeaveCount::create([
+                $createData = [
                     'user_id' => $userId,
                     'leave_type_id' => $leaveTypeId,
                     'total_leaves' => $formField['total_leaves'],
-                ]);
+                ];
+                if (isset($formField['monthly_leave_expiry_cycle'])) {
+                    $createData['monthly_leave_expiry_cycle'] = $formField['monthly_leave_expiry_cycle'];
+                }
+                EmployeeSpecificLeaveCount::create($createData);
             }
         }
 

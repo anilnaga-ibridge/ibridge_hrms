@@ -4,8 +4,10 @@ export default [{
     path: "/admin/settings/",
     component: () =>
         import("../../common/layouts/Admin.vue"),
-    children: [{
-        path: "company",
+    children: [
+        ...CommonAdminSettings,
+        {
+            path: "company",
         component: () =>
             import("../views/settings/company/Edit.vue"),
         name: "admin.settings.company.index",
@@ -152,6 +154,5 @@ export default [{
             permission: "email_edit",
         },
     },
-    ...CommonAdminSettings,
     ],
 },];

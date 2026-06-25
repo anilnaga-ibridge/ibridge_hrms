@@ -4,6 +4,8 @@ use Examyou\RestAPI\Facades\ApiRoute;
 use Illuminate\Support\Facades\Route;
 
 $appType = app_type();
+
+// Main superadmin-only group (for SaaS) with remaining routes
 $routeArray = [
     'namespace' => 'App\Http\Controllers\Api\Common',
 ];
@@ -42,6 +44,30 @@ if ($appType == 'saas') {
     });
 }
 
+// Routes accessible by both admin and superadmin in saas mode
+if ($appType == 'saas') {
+    ApiRoute::group([
+        'namespace' => 'App\Http\Controllers\Api\Common',
+        'prefix' => 'superadmin',
+        'middleware' => ['api.permission.check', 'api.auth.check', 'license-expire']
+    ], function () {
+        ApiRoute::group(['prefix' => 'settings'], function () {
+            ApiRoute::get('storage', ['as' => 'api.settings.storage.index', 'uses' => 'SettingsController@getStorage']);
+            ApiRoute::post('storage/update', ['as' => 'api.settings.storage.update', 'uses' => 'SettingsController@updateStorage']);
+        });
+
+        ApiRoute::post('database-backups', ['as' => 'api.settings.database-backups', 'uses' => 'DatabaseBackupController@databaseBackups']);
+        ApiRoute::post('generate-backups', ['as' => 'api.settings.generate-backups', 'uses' => 'DatabaseBackupController@generateBackups']);
+        ApiRoute::post('delete-backup', ['as' => 'api.settings.delete-backup', 'uses' => 'DatabaseBackupController@deleteBackup']);
+        ApiRoute::post('update-mysqldump-command', ['as' => 'api.settings.update-mysqldump-command', 'uses' => 'DatabaseBackupController@updateMysqldumpCommand']);
+
+        ApiRoute::get('update-app/download-percentage', ['as' => 'api.update-app.download-percentage', 'uses' => 'UpdateAppController@downloadPercent']);
+        ApiRoute::post('update-app/extract', ['as' => 'api.update-app.extract', 'uses' => 'UpdateAppController@extractZip']);
+        ApiRoute::post('update-app/update', ['as' => 'api.update-app.update', 'uses' => 'UpdateAppController@updateApp']);
+        ApiRoute::get('update-app', ['as' => 'api.update-app.index', 'uses' => 'UpdateAppController@index']);
+    });
+}
+
 // Routes which are available
 // according to app_type
 ApiRoute::group($routeArray, function () {
@@ -56,9 +82,24 @@ ApiRoute::group($routeArray, function () {
     ApiRoute::resource('langs', 'LangsController', $options);
     ApiRoute::resource('currencies', 'CurrencyController', $options);
 
+    if (app_type() != 'saas') {
+        ApiRoute::group(['prefix' => 'settings'], function () {
+            ApiRoute::post('storage/update', ['as' => 'api.settings.storage.update', 'uses' => 'SettingsController@updateStorage']);
+            ApiRoute::get('storage', ['as' => 'api.settings.storage.index', 'uses' => 'SettingsController@getStorage']);
+        });
+
+        ApiRoute::get('update-app/download-percentage', ['as' => 'api.update-app.download-percentage', 'uses' => 'UpdateAppController@downloadPercent']);
+        ApiRoute::post('update-app/extract', ['as' => 'api.update-app.extract', 'uses' => 'UpdateAppController@extractZip']);
+        ApiRoute::post('update-app/update', ['as' => 'api.update-app.update', 'uses' => 'UpdateAppController@updateApp']);
+        ApiRoute::get('update-app', ['as' => 'api.update-app.index', 'uses' => 'UpdateAppController@index']);
+
+        ApiRoute::post('database-backups', ['as' => 'api.settings.database-backups', 'uses' => 'DatabaseBackupController@databaseBackups']);
+        ApiRoute::post('generate-backups', ['as' => 'api.settings.generate-backups', 'uses' => 'DatabaseBackupController@generateBackups']);
+        ApiRoute::post('delete-backup', ['as' => 'api.settings.delete-backup', 'uses' => 'DatabaseBackupController@deleteBackup']);
+        ApiRoute::post('update-mysqldump-command', ['as' => 'api.settings.update-mysqldump-command', 'uses' => 'DatabaseBackupController@updateMysqldumpCommand']);
+    }
+
     ApiRoute::group(['prefix' => 'settings'], function () {
-        ApiRoute::post('storage/update', ['as' => 'api.settings.storage.update', 'uses' => 'SettingsController@updateStorage']);
-        ApiRoute::get('storage', ['as' => 'api.settings.storage.index', 'uses' => 'SettingsController@getStorage']);
         ApiRoute::post('email/send-test-mail', ['as' => 'api.settings.email.send-test-mail', 'uses' => 'SettingsController@sendTestMail']);
         ApiRoute::post('email/send-mail-settings', ['as' => 'api.settings.send-mail-settings', 'uses' => 'SettingsController@sendMailSettings']);
         ApiRoute::post('email/update', ['as' => 'api.settings.email.update', 'uses' => 'SettingsController@updateEmailSetting']);
@@ -70,14 +111,4 @@ ApiRoute::group($routeArray, function () {
     ApiRoute::post('modules/install', ['as' => 'api.modules.install', 'uses' => 'ModuleController@install']);
     ApiRoute::post('modules/update-status', ['as' => 'api.modules.update_status', 'uses' => 'ModuleController@updateStatus']);
     ApiRoute::get('modules', ['as' => 'api.modules.index', 'uses' => 'ModuleController@index']);
-
-    ApiRoute::get('update-app/download-percentage', ['as' => 'api.update-app.download-percentage', 'uses' => 'UpdateAppController@downloadPercent']);
-    ApiRoute::post('update-app/extract', ['as' => 'api.update-app.extract', 'uses' => 'UpdateAppController@extractZip']);
-    ApiRoute::post('update-app/update', ['as' => 'api.update-app.update', 'uses' => 'UpdateAppController@updateApp']);
-    ApiRoute::get('update-app', ['as' => 'api.update-app.index', 'uses' => 'UpdateAppController@index']);
-
-    ApiRoute::post('database-backups', ['as' => 'api.settings.database-backups', 'uses' => 'DatabaseBackupController@databaseBackups']);
-    ApiRoute::post('generate-backups', ['as' => 'api.settings.generate-backups', 'uses' => 'DatabaseBackupController@generateBackups']);
-    ApiRoute::post('delete-backup', ['as' => 'api.settings.delete-backup', 'uses' => 'DatabaseBackupController@deleteBackup']);
-    ApiRoute::post('update-mysqldump-command', ['as' => 'api.settings.update-mysqldump-command', 'uses' => 'DatabaseBackupController@updateMysqldumpCommand']);
 });

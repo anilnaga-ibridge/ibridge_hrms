@@ -8,6 +8,34 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\File;
 
 Route::get('{path}', function () {
+    $ssoToken = null;
+    $ssoUser = null;
+    $ssoExpires = null;
+
+    if (request()->has('sso_email') && request()->has('sso_time') && request()->has('sso_hash')) {
+        $email = request('sso_email');
+        $time = request('sso_time');
+        $hash = request('sso_hash');
+        $ssoSecret = config('services.sso.secret');
+        
+        if (!empty($ssoSecret)) {
+            // 2 minutes window to account for server clock drifts
+            if (abs(time() - $time) < 120) {
+                $expectedHash = md5($email . $time . $ssoSecret);
+                if ($hash === $expectedHash) {
+                    $user = \App\Models\User::where('email', $email)->first();
+                    if ($user) {
+                        auth()->login($user);
+                        $ssoToken = auth('api')->login($user);
+                        session()->forget('user');
+                        $ssoUser = user();
+                        $ssoExpires = \Carbon\Carbon::now()->addDays(180)->toIso8601String();
+                    }
+                }
+            }
+        }
+    }
+
     if (file_exists(storage_path('installed'))) {
 
         $appName = "iBridge HR";
@@ -35,6 +63,12 @@ Route::get('{path}', function () {
             'loadingImage' => $company->light_logo_url,
             'loadingLangMessageLang' => $loadingLangMessageLang ? $loadingLangMessageLang->value : '',
         ];
+
+        if ($ssoToken) {
+            $data['sso_token'] = $ssoToken;
+            $data['sso_user'] = $ssoUser;
+            $data['sso_expires'] = $ssoExpires;
+        }
 
         if (request()->is('admin/login') || request()->path() == 'admin/login' || request()->route('path') == 'admin/login') {
             $langKey = front_lang_key();

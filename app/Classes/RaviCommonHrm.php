@@ -19,6 +19,7 @@ use App\Models\Generate;
 use App\Models\Leave;
 use App\Models\Payroll;
 use App\Models\PrePayment;
+use App\Models\EmployeeSpecificLeaveCount;
 
 class RaviCommonHrm
 {
@@ -257,6 +258,8 @@ class RaviCommonHrm
 
         // If user have shift then shift time will be return
         // Else company time will be return
+        $isRemote = $user && $user->shift ? $user->shift->is_remote : false;
+
         return [
             'clock_in_time' => $clockInTime,
             'clock_out_time' => $clockOutTime,
@@ -268,6 +271,7 @@ class RaviCommonHrm
             'actual_allowed_clock_in_time' => $actualAllowedClockIn,
             'actual_allowed_clock_out_time' => $actualAllowedClockOut,
             'is_next_day' => $user && $user->shift ? $user->shift->is_next_day : 0,
+            'is_remote' => $isRemote,
         ];
     }
 
@@ -301,6 +305,54 @@ class RaviCommonHrm
         ];
     }
 
+    /**
+     * Resolve the effective leave quota for a given user and leave type.
+     *
+     * - same_for_all      → use leave_types.total_leaves & leave_types.max_leaves_per_month
+     * - employee_specific → use employee_specific_leave_counts row for this user;
+     *                        if no row exists, entitlement is 0 (no fallback to global).
+     * - Monthly leave types with an employee-specific override row also use that
+     *   row's cap rather than the global cap.
+     *
+     * @return array{totalLeaves: int, maxLeavesPerMonth: int|null, monthlyLeaveExpiryCycle: int}
+     */
+    public static function getEffectiveLeaveQuota(int $userId, LeaveType $leaveType): array
+    {
+        // Always look up the employee-specific override first, regardless of
+        // count_type — monthly leave types can also have per-employee caps.
+        $specificRecord = EmployeeSpecificLeaveCount::where('user_id', $userId)
+            ->where('leave_type_id', $leaveType->id)
+            ->first();
+
+        if ($specificRecord && ($leaveType->count_type === 'employee_specific' || $leaveType->isMonthlyLeave())) {
+            return [
+                'totalLeaves'            => (int) $specificRecord->total_leaves,
+                'maxLeavesPerMonth'      => $leaveType->count_type === 'employee_specific'
+                    ? ($specificRecord->max_leaves_per_month !== null ? (int) $specificRecord->max_leaves_per_month : 0)
+                    : ($specificRecord->max_leaves_per_month !== null ? (int) $specificRecord->max_leaves_per_month : $leaveType->max_leaves_per_month),
+                'monthlyLeaveExpiryCycle' => $specificRecord->monthly_leave_expiry_cycle !== null
+                    ? (int) $specificRecord->monthly_leave_expiry_cycle
+                    : ($leaveType->monthly_leave_expiry_cycle ?? 3),
+            ];
+        }
+
+        if ($leaveType->count_type === 'employee_specific') {
+            // No row configured → zero entitlement
+            return [
+                'totalLeaves'            => 0,
+                'maxLeavesPerMonth'      => 0,
+                'monthlyLeaveExpiryCycle' => 3,
+            ];
+        }
+
+        // same_for_all (or any unrecognised type) → global values
+        return [
+            'totalLeaves'            => (int) $leaveType->total_leaves,
+            'maxLeavesPerMonth'      => $leaveType->max_leaves_per_month,
+            'monthlyLeaveExpiryCycle' => $leaveType->monthly_leave_expiry_cycle ?? 3,
+        ];
+    }
+
     public static function isPaidLeaveOrNot($date, $userId, $leaveTypeId)
     {
         $isPaid = true;
@@ -309,22 +361,26 @@ class RaviCommonHrm
         $isHoliday = Holiday::whereDate('date', $date)->exists();
 
         $leaveType = LeaveType::find($leaveTypeId);
-        $maxLeavePerMonth = $leaveType->max_leaves_per_month;
+        
+        // Resolve effective quota (handles employee_specific vs same_for_all)
+        $quota                        = self::getEffectiveLeaveQuota($userId, $leaveType);
+        $totalLeavesForEmployee       = $quota['totalLeaves'];
+        $maxLeavesPerMonthForEmployee = $quota['maxLeavesPerMonth'];
 
         // Get financial year
         $financialYear = self::getFincialYearFromDate($date);
 
         // Get month and total leave stats
         $dateDetails = self::getDateDetails($date);
-        $leaveMonth = $dateDetails['month'];
+        $leaveMonth  = $dateDetails['month'];
         $paidLeaveTakenThisMonth = self::totalPaidLeavesByYearMonth($leaveTypeId, $userId, $financialYear, $leaveMonth);
         $totalLeaveTakenThisYear = self::totalPaidLeavesByYear($leaveTypeId, $userId, $financialYear);
 
-        // Determine if paid leave is allowed
+        // Determine if paid leave is allowed based on employee-effective quota
         if (!$isHoliday) {
             if (
-                $totalLeaveTakenThisYear >= $leaveType->total_leaves ||
-                ($maxLeavePerMonth !== null && $paidLeaveTakenThisMonth >= $maxLeavePerMonth)
+                $totalLeaveTakenThisYear >= $totalLeavesForEmployee ||
+                ($maxLeavesPerMonthForEmployee !== null && $maxLeavesPerMonthForEmployee !== 0 && $paidLeaveTakenThisMonth >= $maxLeavesPerMonthForEmployee)
             ) {
                 $isPaid = false;
             }
@@ -334,12 +390,12 @@ class RaviCommonHrm
         $isPaid = $leaveType->is_paid == 0 ? 0 : $isPaid;
 
         return [
-            'isHoliday' => $isHoliday,
-            'isPaid'   => $isPaid,
+            'isHoliday'               => $isHoliday,
+            'isPaid'                  => $isPaid,
             'paidLeaveTakenThisMonth' => $paidLeaveTakenThisMonth,
             'totalLeaveTakenThisYear' => $totalLeaveTakenThisYear,
-            'totalLeaves' => $leaveType->total_leaves,
-            'maxLeavePerMonth' => $maxLeavePerMonth,
+            'totalLeaves'             => $totalLeavesForEmployee,
+            'maxLeavePerMonth'        => $maxLeavesPerMonthForEmployee,
         ];
     }
 
@@ -455,22 +511,14 @@ class RaviCommonHrm
 
     public static function getIpAddress()
     {
-        $ipaddress = '';
+        $ipaddress = request()->ip() ?? 'UNKNOWN';
 
-        if (isset($_SERVER['HTTP_CLIENT_IP']))
-            $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
-        else if (isset($_SERVER['HTTP_X_FORWARDED_FOR']))
-            $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        else if (isset($_SERVER['HTTP_X_FORWARDED']))
-            $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
-        else if (isset($_SERVER['HTTP_FORWARDED_FOR']))
-            $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
-        else if (isset($_SERVER['HTTP_FORWARDED']))
-            $ipaddress = $_SERVER['HTTP_FORWARDED'];
-        else if (isset($_SERVER['REMOTE_ADDR']))
-            $ipaddress = $_SERVER['REMOTE_ADDR'];
-        else
-            $ipaddress = 'UNKNOWN';
+        if (in_array($ipaddress, ['::1', '127.0.0.1', 'UNKNOWN'])) {
+            $hostIp = gethostbyname(gethostname());
+            if ($hostIp != gethostname()) {
+                $ipaddress = $hostIp;
+            }
+        }
 
         return $ipaddress;
     }

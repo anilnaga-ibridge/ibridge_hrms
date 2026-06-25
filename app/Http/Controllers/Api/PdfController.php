@@ -107,6 +107,7 @@ class PdfController extends ApiBaseController
         $pdf = PDF::loadView('pdf.holiday', $pdfData);
 
         $pdfTitle = $translation && $translation['holiday_calendar'] ? $translation['holiday_calendar'] . ' ' . $year  . '.pdf' : 'holidays ' . $year . '.pdf';
+        $pdfTitle = $this->sanitizeFilename($pdfTitle);
         $pdfAction = $action == 'download' ? 'attachment' : 'inline';
 
         return response($pdf->output(), 200)
@@ -251,6 +252,7 @@ class PdfController extends ApiBaseController
         $pdf = PDF::loadView('pdf.account_entries', $pdfData);
 
         $pdfTitle = $translation && $translation['account_statement'] ? $translation['account_statement'] . '-' . $startDate . 'To' . $endDate  . '.pdf' : 'holidays ' . $year . '.pdf';
+        $pdfTitle = $this->sanitizeFilename($pdfTitle);
         $pdfAction = $action == 'download' ? 'attachment' : 'inline';
 
         return response($pdf->output(), 200)
@@ -304,6 +306,7 @@ class PdfController extends ApiBaseController
         $pdf = PDF::loadView('pdf.payroll', $pdfData);
 
         $pdfTitle =  $user->name . '-' . $payroll->month . '-' .  $payroll->year  . '.pdf';
+        $pdfTitle = $this->sanitizeFilename($pdfTitle);
         $pdfAction = $action == 'download' ? 'attachment' : 'inline';
 
         return response($pdf->output(), 200)
@@ -543,13 +546,32 @@ class PdfController extends ApiBaseController
 
         if ($xid != null) {
             $id = $this->getIdFromHash($xid);
-            $generate = Generate::where('id', $id)->with(['user'])->first();
+            $generate = Generate::where('id', $id)->with(['user', 'letterHeadTemplate'])->first();
+
+            // Guard against a missing record to avoid fatal property-access errors.
+            if (!$generate) {
+                return response()->json(['error' => 'Document not found'], 404);
+            }
+
             $title = $generate->title;
             $htmlcontent = $generate->description;
+
+            if ($generate->letterHeadTemplate && strtolower($generate->letterHeadTemplate->title) == 'award certificate') {
+                $showHeaderFooter = false;
+            }
         } else {
             $title = $request->title;
             $htmlcontent = $request->html;
         }
+
+        // Replace company logo and company name placeholders if present
+        $logoUrl = e($company->light_logo_url);
+        $logoHtml = $logoUrl ? '<img src="' . $logoUrl . '" style="max-height: 50px; max-width: 180px;" />' : '';
+        $htmlcontent = str_replace('##COMPANY_LOGO##', $logoHtml, $htmlcontent);
+        $htmlcontent = str_replace('##COMPANY_NAME##', e($company->name), $htmlcontent);
+
+        // Sanitize HTML for mPDF compatibility
+        $htmlcontent = $this->sanitizeHtmlForMpdf($htmlcontent);
 
         $pdfData = [
             'htmlcontent' => $htmlcontent,
@@ -561,15 +583,92 @@ class PdfController extends ApiBaseController
 
         $this->setPdfConfig($showHeaderFooter);
 
-        $pdf = PDF::loadView('pdf.generate', $pdfData);
+        // Suppress E_NOTICE/E_WARNING from mPDF font metric lookups that
+        // escalate to exceptions in Laravel's strict error handler.
+        // The finally block ensures error_reporting is restored even on exception.
+        $previousErrorReporting = error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+        try {
+            $pdf = PDF::loadView('pdf.generate', $pdfData);
+        } finally {
+            error_reporting($previousErrorReporting);
+        }
 
-        $pdfTitle =  'letter.pdf';
+        $pdfTitle = $title ? $title . '.pdf' : 'letter.pdf';
+        $pdfTitle = $this->sanitizeFilename($pdfTitle);
         $pdfAction = $action == 'download' ? 'attachment' : 'inline';
 
         return response($pdf->output(), 200)
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', $pdfAction . '; filename="' . $pdfTitle . '"')
             ->header('Access-Control-Allow-Origin', '*');
+    }
+
+    /**
+     * Sanitize HTML content for mPDF rendering.
+     *
+     * mPDF does not support SVG, @page rules, position:absolute/fixed/relative,
+     * overflow, z-index, box-sizing, or CSS transforms.
+     *
+     * Award certificate templates also use a large left padding (e.g. 82mm)
+     * to offset the SVG wave decoration. After SVG removal that padding pushes
+     * all text off the visible page area, producing an empty PDF.
+     */
+    private function sanitizeHtmlForMpdf(string $html): string
+    {
+        // 1. Strip <style> blocks — they contain @page rules, unsupported CSS
+        //    selectors, and the oversized left padding on .award-inner that
+        //    hides all content after the SVG wave is removed.
+        $html = preg_replace('/<style[^>]*>.*?<\/style>/is', '', $html);
+
+        // 2. Strip SVG elements — mPDF has no SVG renderer.
+        $html = preg_replace('/<svg[^>]*>.*?<\/svg>/is', '', $html);
+
+        // 3. Strip <script> elements.
+        $html = preg_replace('/<script[^>]*>.*?<\/script>/is', '', $html);
+
+        // 4. Fix shorthand padding where the LEFT value exceeds 30mm.
+        //    Award certificates use padding: 18mm 20mm 15mm 82mm
+        //    (82mm = space for SVG wave). Without the wave this is invisible.
+        $html = preg_replace_callback(
+            '/\bpadding\s*:\s*([^;"\'>]+)/i',
+            function ($m) {
+                $parts = preg_split('/\s+/', trim($m[1]));
+                if (count($parts) === 4) {
+                    if (preg_match('/^(\d+(\.\d+)?)(mm|pt|px|cm)/', $parts[3], $u) && (float)$u[1] > 30) {
+                        $parts[3] = '15mm';
+                        return 'padding: ' . implode(' ', $parts);
+                    }
+                }
+                return $m[0];
+            },
+            $html
+        );
+
+        // 5. Remove CSS properties mPDF does not support.
+        $stripProps = ['box-sizing', 'overflow', 'z-index', 'transform',
+                       'object-fit', 'object-position', 'pointer-events'];
+        foreach ($stripProps as $prop) {
+            $html = preg_replace('/\b' . preg_quote($prop, '/') . '\s*:\s*[^;]+;?/i', '', $html);
+        }
+
+        // 6. Remove positioning and offset properties.
+        $html = preg_replace('/\bposition\s*:\s*(absolute|fixed|relative|sticky)\s*;?/i', '', $html);
+        $html = preg_replace('/\b(top|right|bottom|left)\s*:\s*[^;]+;?/i', '', $html);
+
+        // 7. Remove height: 100% — meaningless in mPDF flow layout.
+        $html = preg_replace('/\bheight\s*:\s*100%\s*;?/i', '', $html);
+
+        // 8. Remove max-width/max-height: none overrides.
+        $html = preg_replace('/\bmax-(width|height)\s*:\s*none[^;]*;?/i', '', $html);
+
+        // 9. Remove white-space: nowrap (causes mPDF table cell crash).
+        $html = preg_replace('/\bwhite-space\s*:\s*nowrap\s*;?/i', '', $html);
+
+        // 10. Upgrade "border: none" to "border: 0 !important" so the global
+        //     .letterContent table/td styles in pdf.blade.php don't override it.
+        $html = preg_replace('/\bborder\s*:\s*none\s*;?/i', 'border: 0 !important;', $html);
+
+        return $html;
     }
 
     public function companyPolicyPdf($xid = null)
@@ -605,6 +704,7 @@ class PdfController extends ApiBaseController
         $pdf = PDF::loadView('pdf.company_policy', $pdfData);
 
         $pdfTitle =  'company-policy.pdf';
+        $pdfTitle = $this->sanitizeFilename($pdfTitle);
         $pdfAction = $action == 'download' ? 'attachment' : 'inline';
 
         return response($pdf->output(), 200)
@@ -852,7 +952,8 @@ class PdfController extends ApiBaseController
 
         $pdf = PDF::loadView('pdf.export', $pdfData);
         $pdfTitle = 'attendance.pdf';
-
+        $pdfTitle = $this->sanitizeFilename($pdfTitle);
+ 
         return response($pdf->output(), 200)
             ->header('Content-Type', 'application/pdf')
             ->header('Access-Control-Allow-Origin', '*')
@@ -1009,5 +1110,11 @@ class PdfController extends ApiBaseController
         return response()->streamDownload(function () use ($export, $excel) {
             echo $excel->raw($export, Excel::CSV);
         }, 'attendance.csv');
+    }
+
+    private function sanitizeFilename(string $filename): string
+    {
+        $filename = str_replace(['/', '\\', '..'], '', $filename);
+        return preg_replace('/[\x00-\x1F\x7F\r\n"]/', '', $filename);
     }
 }

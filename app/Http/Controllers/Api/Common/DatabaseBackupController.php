@@ -50,10 +50,6 @@ class DatabaseBackupController extends ApiBaseController
 
     public function generateBackups(Request $request)
     {
-        if (env('APP_ENV') == 'production') {
-            throw new ApiException('Not Allowed In Demo Mode');
-        }
-
         Artisan::call('database:backup');
 
         $data = $this->allDatabases();
@@ -63,10 +59,6 @@ class DatabaseBackupController extends ApiBaseController
 
     public function downloadBackups($id)
     {
-        if (env('APP_ENV') == 'production') {
-            throw new ApiException('Not Allowed In Demo Mode');
-        }
-
         $downloadedFileName = "";
 
         foreach (Storage::disk('backup')->files('/') as $filename) {

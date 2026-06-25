@@ -271,6 +271,9 @@
 
             <a-row class="mb-20" :gutter="[15, 15]">
                 <a-col :xs="24" :sm="24" :md="24" :lg="8" :xl="8">
+                    <BirthdayWishCard :data="responseData" />
+                </a-col>
+                <a-col :xs="24" :sm="24" :md="24" :lg="8" :xl="8">
                     <Birthday
                         :data="responseData"
                         @employeeBirthDayData="employeeBirthDayData"
@@ -315,6 +318,16 @@
                         :data="responseData"
                         @employeeAppriciationData="employeeAppriciationData"
                     />
+                </a-col>
+                <a-col
+                    v-if="willSubscriptionModuleVisible('appreciations')"
+                    :xs="24"
+                    :sm="24"
+                    :md="24"
+                    :lg="8"
+                    :xl="8"
+                >
+                    <RecentAchievements :data="responseData" />
                 </a-col>
                 <a-col
                     v-if="willSubscriptionModuleVisible('payrolls')"
@@ -366,12 +379,14 @@ import EmployeeStatus from "./admin-dashboard/EmployeeStatus.vue";
 import ClockInOut from "./admin-dashboard/ClockInOut.vue";
 import EmployeeByDepartment from "./admin-dashboard/EmployeeByDepartment.vue";
 import Birthday from "./admin-dashboard/Birthday.vue";
+import BirthdayWishCard from "../../common/components/common/card/BirthdayWishCard.vue";
 import DateRangePicker from "../../common/components/common/calendar/DateRangePicker.vue";
 import WorkAnniversay from "./admin-dashboard/WorkAnniversay.vue";
 import WeekendHoliday from "./admin-dashboard/WeekendHoliday.vue";
 import EmployeeWorkStatus from "./admin-dashboard/EmployeeWorkStatus.vue";
 import Performance from "./admin-dashboard/performance.vue";
 import IncrementPromotion from "./admin-dashboard/IncrementPromotion.vue";
+import RecentAchievements from "./self/self-dashboard/RecentAchievements.vue";
 
 export default {
     components: {
@@ -391,6 +406,7 @@ export default {
         ClockInOut,
         EmployeeByDepartment,
         Birthday,
+        BirthdayWishCard,
         DateRangePicker,
         CalendarOutlined,
         WorkAnniversay,
@@ -398,6 +414,7 @@ export default {
         EmployeeWorkStatus,
         IncrementPromotion,
         Performance,
+        RecentAchievements,
     },
     setup(props) {
         const {

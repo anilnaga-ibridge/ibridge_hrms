@@ -158,6 +158,9 @@
             </a-row>
 
             <a-row class="mb-20" :gutter="[15, 15]">
+                <a-col :xs="24" :sm="24" :md="24" :lg="8" :xl="8">
+                    <SelfPerformanceChart />
+                </a-col>
                 <a-col
                     v-if="willSubscriptionModuleVisible('forms')"
                     :xs="24"
@@ -193,6 +196,19 @@
                         :data="responseData"
                         @employeeIncrementData="employeeIncrementData"
                     />
+                </a-col>
+                <a-col
+                    v-if="willSubscriptionModuleVisible('appreciations')"
+                    :xs="24"
+                    :sm="24"
+                    :md="24"
+                    :lg="8"
+                    :xl="8"
+                >
+                    <RecentAchievements :data="responseData" />
+                </a-col>
+                <a-col :xs="24" :sm="24" :md="24" :lg="8" :xl="8">
+                    <BirthdayWishCard :data="responseData" />
                 </a-col>
                 <a-col :xs="24" :sm="24" :md="24" :lg="8" :xl="8">
                     <Birthday
@@ -273,6 +289,7 @@ import LeaveDetailsFixed from "./self-dashboard/LeaveDetailsFixed.vue";
 import Attendance from "./self-dashboard/Attendance.vue";
 import SelfProgressBar from "./self-dashboard/SelfProgressBar.vue";
 import Performance from "./self-dashboard/Performance.vue";
+import SelfPerformanceChart from "./self-dashboard/SelfPerformanceChart.vue";
 import AssignedSurvey from "./self-dashboard/AssignedSurvey.vue";
 import SelfIncrementPromotion from "./self-dashboard/SelfIncrementPromotion.vue";
 import SelfBirthday from "./self-dashboard/SelfBirthday.vue";
@@ -280,9 +297,11 @@ import SelfCompanyPolicy from "./self-dashboard/SelfCompanyPolicy.vue";
 import SelfNextHoliday from "./self-dashboard/SelfNextHoliday.vue";
 import StateWidget from "../../../common/components/common/card/StateWidget.vue";
 import Birthday from "./self-dashboard/Birthday.vue";
+import BirthdayWishCard from "../../../common/components/common/card/BirthdayWishCard.vue";
 import SelfWorkAnniversay from "./self-dashboard/SelfWorkAnniversay.vue";
 import SelfWeekendHoliday from "./self-dashboard/SelfWeekendHoliday.vue";
 import DateRangePicker from "../../../common/components/common/calendar/DateRangePicker.vue";
+import RecentAchievements from "./self-dashboard/RecentAchievements.vue";
 
 import { map } from "lodash-es";
 
@@ -297,6 +316,7 @@ export default {
         Attendance,
         SelfProgressBar,
         Performance,
+        SelfPerformanceChart,
         AssignedSurvey,
         SelfIncrementPromotion,
         SelfBirthday,
@@ -305,9 +325,11 @@ export default {
         BankOutlined,
         TrophyOutlined,
         Birthday,
+        BirthdayWishCard,
         SelfWorkAnniversay,
         SelfWeekendHoliday,
         DateRangePicker,
+        RecentAchievements,
         WomanOutlined,
         UserOutlined,
         DollarCircleOutlined,

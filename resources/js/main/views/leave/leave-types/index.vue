@@ -138,10 +138,8 @@
                                 {{
                                     record.count_type === "employee_specific" &&
                                     record.employee_specific_leave_count.length
-                                        ? record
-                                              .employee_specific_leave_count[0]
-                                              .total_leaves
-                                        : record.total_leaves || "-"
+                                        ? record.employee_specific_leave_count[0].total_leaves
+                                        : record.total_leaves || '-'
                                 }}
                             </template>
 

@@ -27,6 +27,9 @@ class StoreRequest extends FormRequest
             'name' => 'required',
             'is_paid' => 'required',
             'total_leaves' => 'required',
+            'max_leaves_per_month' => 'nullable|integer|min:0',
+            'is_monthly_leave' => 'nullable|boolean',
+            'monthly_leave_expiry_cycle' => 'nullable|integer|min:1',
         ];
 
         return $rules;

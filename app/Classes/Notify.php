@@ -168,6 +168,36 @@ class Notify
             $data['user'] = $newsUser->user;
             $data['company'] = $newsUser->user->company;
             $data['survey'] = $newsUser->feedback;
+        } else if (in_array($sendFor, ['employee_birthday_wish'])) {
+            $user = User::with(['company'])->where('id', $sendData->id)->first();
+
+            $data['to'] = $user;
+            $data['user'] = $user;
+            $data['company'] = $user ? $user->company : null;
+        } else if (in_array($sendFor, ['employee_birthday_reminder'])) {
+            $birthdayUser = User::find($sendData['birthday_user_id']);
+            $recipient = User::find($sendData['recipient_id']);
+
+            $data['to'] = $recipient;
+            $data['user'] = $birthdayUser;
+            $data['company'] = $recipient ? $recipient->company : null;
+            $data['birthday_user'] = $birthdayUser;
+        } else if (in_array($sendFor, ['employee_task_assigned'])) {
+            $task = \App\Models\Task::find($sendData['task_id']);
+            $recipient = User::with(['company'])->where('id', $sendData['recipient_id'])->first();
+
+            $data['to'] = $recipient;
+            $data['user'] = $recipient;
+            $data['company'] = $recipient ? $recipient->company : null;
+            $data['task'] = $task;
+        } else if (in_array($sendFor, ['holiday_reminder'])) {
+            $holiday = \App\Models\Holiday::find($sendData['holiday_id']);
+            $recipient = User::with(['company'])->where('id', $sendData['recipient_id'])->first();
+
+            $data['to'] = $recipient;
+            $data['user'] = $recipient;
+            $data['company'] = $recipient ? $recipient->company : null;
+            $data['holiday'] = $holiday;
         }
 
         return $data;
@@ -296,6 +326,10 @@ class Notify
             'SURVEY_TITLE' => $data && isset($data['survey']) && isset($data['survey']['title']) ? $data['survey']['title'] : '',
             'SURVEY_DESCRIPTION' => $data && isset($data['survey']) && isset($data['survey']['description']) ? $data['survey']['description'] : '',
 
+            'TASK_NAME' => $data && isset($data['task']) && isset($data['task']['name']) ? $data['task']['name'] : '',
+            'HOLIDAY_NAME' => $data && isset($data['holiday']) && isset($data['holiday']['name']) ? $data['holiday']['name'] : '',
+            'HOLIDAY_DATE' => $data && isset($data['holiday']) && isset($data['holiday']['date']) ? $data['holiday']['date'] : '',
+
             'ATTENDANCE_CLOCK_IN_TIME' => $data && isset($data['attendance']) && isset($data['attendance']['clock_in_date_time']) ? $data['attendance']['clock_in_date_time'] : '',
             'ATTENDANCE_CLOCK_IN_IP' => $data && isset($data['attendance']) && isset($data['attendance']['clock_in_ip_address']) ? $data['attendance']['clock_in_ip_address'] : '',
             'ATTENDANCE_CLOCK_OUT_TIME' => $data && isset($data['attendance']) && isset($data['attendance']['clock_out_date_time']) ? $data['attendance']['clock_out_date_time'] : '',
@@ -400,15 +434,17 @@ class Notify
 
         $data = self::getData($sendFor, $sendData);
         $dataArray = self::getDataArray($data);
-        $sender = $data['to'];
+        $sender = isset($data['to']) ? $data['to'] : null;
 
-        $notficationData = [
-            'send_for' => $sendFor,
-            'to' => $data['to'],
-            'mail' => self::isAbleToSendMail($sendFor, $dataArray),
-            'data' => $data,
-        ];
+        if ($sender) {
+            $notficationData = [
+                'send_for' => $sendFor,
+                'to' => $data['to'],
+                'mail' => self::isAbleToSendMail($sendFor, $dataArray),
+                'data' => $data,
+            ];
 
-        $sender->notify(new MainNotificaiton($notficationData));
+            $sender->notify(new MainNotificaiton($notficationData));
+        }
     }
 }

@@ -45,19 +45,33 @@ class DatabaseBackup extends Command
 
     public function handle()
     {
-        $randomId = Str::random(8);
-        $todayDate = Carbon::now()->format('Y-m-d');
-        $todayTime =  Carbon::now()->format('H:i:s');
-        $path = Storage::disk('backup')->path('');
+        $randomId   = Str::random(8);
+        $todayDate  = Carbon::now()->format('Y-m-d');
+        $todayTime  = Carbon::now()->format('H:i:s');
+        $path       = Storage::disk('backup')->path('');
 
-        $databasePassword = env('DB_PASSWORD');
-        $filename = $randomId . "--backup--" . $todayDate . "--" . $todayTime . ".sql";
+        $filename = $randomId . '--backup--' . $todayDate . '--' . $todayTime . '.sql';
+        $outputFile = $path . $filename;
 
-        if ($databasePassword != '') {
-            $command = "" . env('DUMP_PATH') . " --user=" . env('DB_USERNAME') . " --password='$databasePassword'" . " --host=" . env('DB_HOST') . " " . env('DB_DATABASE') . "  > " . $path . $filename;
-        } else {
-            $command = "" . env('DUMP_PATH') . " --user=" . env('DB_USERNAME') . " --password=$databasePassword" . " --host=" . env('DB_HOST') . " " . env('DB_DATABASE') . "  > " . $path . $filename;
-        }
+        // Escape the executable path to prevent metacharacter injection from
+        // a misconfigured DUMP_PATH env value.
+        $dumpPath = escapeshellcmd(env('DUMP_PATH', 'mysqldump'));
+
+        // Each argument is individually escaped so that credentials or hostnames
+        // containing spaces, quotes, dollar signs, or other shell metacharacters
+        // cannot corrupt the command or be used for shell injection.
+        // escapeshellarg() correctly handles both empty and non-empty strings,
+        // so a single branch replaces the previous if/else.
+        $command = implode(' ', [
+            $dumpPath,
+            '--user='     . escapeshellarg(env('DB_USERNAME', '')),
+            '--password=' . escapeshellarg(env('DB_PASSWORD', '')),
+            '--host='     . escapeshellarg(env('DB_HOST', '127.0.0.1')),
+            '--port='     . escapeshellarg(env('DB_PORT', '3306')),
+            escapeshellarg(env('DB_DATABASE', '')),
+            '>',
+            escapeshellarg($outputFile),
+        ]);
 
         if (!is_dir($path)) {
             mkdir($path, 0755, true);

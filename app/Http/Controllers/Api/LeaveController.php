@@ -88,6 +88,20 @@ class LeaveController extends ApiBaseController
 
         $leave->total_days = Common::calculateLeaveDays($leave, $leave->start_date, $leave->end_date);
 
+        $leaveType = LeaveType::find($leave->leave_type_id);
+        if ($leaveType && $leaveType->isMonthlyLeave() && $leave->status == 'approved') {
+            $activeLeavesCount = \App\Models\EmployeeMonthlyLeave::where('employee_id', $leave->user_id)
+                ->where('status', 'ACTIVE')
+                ->count();
+            // total_days may be fractional (0.5 for a half-day leave).
+            // Each partial day still consumes one monthly credit slot, so
+            // ceil() gives the number of integer credits required.
+            $requiredCredits = (int) ceil((float) $leave->total_days);
+            if ($requiredCredits > $activeLeavesCount) {
+                throw new ApiException("Insufficient monthly leave balance.");
+            }
+        }
+
         // Throw exception if attendance already exists
         CommonHrm::checkIfAttendanceAlreadyExists($leave->user_id, $leave->start_date, $leave->end_date);
 
@@ -123,6 +137,18 @@ class LeaveController extends ApiBaseController
 
         if (($request->status == 'approved' || $request->status == 'rejected')  && $loggedUser->ability('admin', 'leaves_approve_reject')) {
             if ($request->status == 'approved') {
+                $leaveType = LeaveType::find($leave->leave_type_id);
+                if ($leaveType && $leaveType->isMonthlyLeave()) {
+                    $activeLeavesCount = \App\Models\EmployeeMonthlyLeave::where('employee_id', $leave->user_id)
+                        ->where('status', 'ACTIVE')
+                        ->count();
+                    // total_days may be fractional (0.5 for a half-day leave).
+                    // Each partial day still consumes one monthly credit slot.
+                    $requiredCredits = (int) ceil((float) $leave->total_days);
+                    if ($requiredCredits > $activeLeavesCount) {
+                        throw new ApiException("Insufficient monthly leave balance.");
+                    }
+                }
                 CommonHrm::updateLeaveStatus($leave->id);
             }
 
@@ -167,6 +193,18 @@ class LeaveController extends ApiBaseController
         $data = [];
 
         if ($request->status == 'approved') {
+            $leaveType = LeaveType::find($leave->leave_type_id);
+            if ($leaveType && $leaveType->isMonthlyLeave()) {
+                $activeLeavesCount = \App\Models\EmployeeMonthlyLeave::where('employee_id', $leave->user_id)
+                    ->where('status', 'ACTIVE')
+                    ->count();
+                // total_days may be fractional (0.5 for a half-day leave).
+                // Each partial day still consumes one monthly credit slot.
+                $requiredCredits = (int) ceil((float) $leave->total_days);
+                if ($requiredCredits > $activeLeavesCount) {
+                    throw new ApiException("Insufficient monthly leave balance.");
+                }
+            }
             $data = CommonHrm::updateLeaveStatus($id);
         }
 
@@ -233,6 +271,36 @@ class LeaveController extends ApiBaseController
         })->values();
 
         foreach ($filteredLeaveTypes as $leaveType) {
+            if ($leaveType->isMonthlyLeave()) {
+                $activeCount = \App\Models\EmployeeMonthlyLeave::where('employee_id', $userId)
+                    ->where('status', 'ACTIVE')
+                    ->count();
+                $usedCount = \App\Models\EmployeeMonthlyLeave::where('employee_id', $userId)
+                    ->where('status', 'USED')
+                    ->count();
+                $expiredCount = \App\Models\EmployeeMonthlyLeave::where('employee_id', $userId)
+                    ->where('status', 'EXPIRED')
+                    ->count();
+
+                // Carry-forward = active leaves credited before current month
+                $currentMonthStart = Carbon::now()->startOfMonth()->toDateString();
+                $carryForwardCount = \App\Models\EmployeeMonthlyLeave::where('employee_id', $userId)
+                    ->where('status', 'ACTIVE')
+                    ->where('credited_date', '<', $currentMonthStart)
+                    ->count();
+
+                $leaveType->remaining_leaves = $activeCount;
+                $leaveType->total_leaves = $activeCount + $usedCount;
+                $leaveType->monthly_leave_data = [
+                    'available_leaves'     => $activeCount,
+                    'carry_forward_leaves' => $carryForwardCount,
+                    'expired_leaves'       => $expiredCount,
+                    'used_leaves'          => $usedCount,
+                    'next_credit_date'     => Carbon::now()->startOfMonth()->addMonth()->format('Y-m-d'),
+                ];
+                continue;
+            }
+
             if ($leaveType->count_type === 'employee_specific') {
                 $userSpecific = $leaveType->employeeSpecificLeaveCount->first(function ($entry) use ($userId) {
                     return $entry->user_id === $userId;

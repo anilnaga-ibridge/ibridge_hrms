@@ -65,6 +65,7 @@ class Company extends BaseModel
         'letterhead_button_space' => 'integer',
         'use_custom_font' => 'integer',
         'capture_location' => 'integer',
+        'office_location_radius' => 'integer',
     ];
 
     protected $filterable = ['name'];

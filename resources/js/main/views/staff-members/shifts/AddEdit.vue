@@ -141,7 +141,7 @@
                     </a-form-item>
                 </a-col>
 
-                <a-col :xs="24" :sm="24" :md="6" :lg="6">
+                <a-col :xs="24" :sm="24" :md="8" :lg="8">
                     <a-form-item
                         :label="$t('shift.self_clocking')"
                         name="self_clocking"
@@ -167,7 +167,7 @@
                     </a-form-item>
                 </a-col>
 
-                <a-col :xs="24" :sm="24" :md="6" :lg="6">
+                <a-col :xs="24" :sm="24" :md="8" :lg="8">
                     <a-form-item
                         name="capture_location"
                         :help="
@@ -201,6 +201,26 @@
                         </template>
                         <a-radio-group
                             v-model:value="newFormData.capture_location"
+                            button-style="solid"
+                            size="small"
+                        >
+                            <a-radio-button :value="1">
+                                {{ $t("common.yes") }}
+                            </a-radio-button>
+                            <a-radio-button :value="0">
+                                {{ $t("common.no") }}
+                            </a-radio-button>
+                        </a-radio-group>
+                    </a-form-item>
+                </a-col>
+
+                <a-col :xs="24" :sm="24" :md="8" :lg="8">
+                    <a-form-item
+                        :label="$t('shift.is_remote')"
+                        name="is_remote"
+                    >
+                        <a-radio-group
+                            v-model:value="newFormData.is_remote"
                             button-style="solid"
                             size="small"
                         >

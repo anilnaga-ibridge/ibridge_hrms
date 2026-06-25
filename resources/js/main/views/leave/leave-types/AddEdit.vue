@@ -50,34 +50,10 @@
                 </a-col>
             </a-row>
             <a-row :gutter="16">
-                <a-col :xs="6" :sm="6" :md="12" :lg="12">
-                    <a-form-item
-                        :label="$t('leave_type.count_type')"
-                        name="count_type"
-                        :help="
-                            rules.count_type ? rules.count_type.message : null
-                        "
-                        :validateStatus="rules.count_type ? 'error' : null"
-                    >
-                        <a-select
-                            v-model:value="formData.count_type"
-                            :placeholder="
-                                $t('common.placeholder_default_text', [
-                                    $t('leave_type.count_type'),
-                                ])
-                            "
-                            style="width: 100%"
-                        >
-                            <a-select-option value="same_for_all">
-                                {{ $t("leave_type.same_for_all") }}
-                            </a-select-option>
-                            <a-select-option value="employee_specific">
-                                {{ $t("leave_type.employee_specific") }}
-                            </a-select-option>
-                        </a-select>
-                    </a-form-item>
-                </a-col>
-                <a-col :xs="6" :sm="6" :md="12" :lg="12">
+                <a-col
+                    v-if="formData.count_type === 'same_for_all'"
+                    :xs="24" :sm="24" :md="10" :lg="10"
+                >
                     <a-form-item
                         :label="$t('leave_type.total_leaves')"
                         name="total_leaves"
@@ -97,60 +73,51 @@
                                 ])
                             "
                             style="width: 100%"
-                            :disabled="
-                                formData.count_type === 'employee_specific'
-                            "
-                            v-if="
-                                formData.count_type === 'same_for_all' ||
-                                addEditType === 'add'
-                            "
                         />
-                        <a-typography-link
-                            v-if="
-                                formData.count_type === 'employee_specific' &&
-                                addEditType === 'edit'
-                            "
-                            @click="modalOpened"
-                            >{{
-                                $t("leave_type.edit_count")
-                            }}</a-typography-link
-                        >
+                    </a-form-item>
+                </a-col>
+            </a-row>
+            <a-row :gutter="16">
+                <a-col :xs="24" :sm="24" :md="14" :lg="14">
+                    <a-form-item
+                        :label="$t('leave_type.count_type')"
+                        name="count_type"
+                        :help="
+                            rules.count_type ? rules.count_type.message : null
+                        "
+                        :validateStatus="rules.count_type ? 'error' : null"
+                    >
+                        <a-input-group compact style="display: flex; gap: 8px;">
+                            <a-select
+                                v-model:value="formData.count_type"
+                                :placeholder="
+                                    $t('common.placeholder_default_text', [
+                                        $t('leave_type.count_type'),
+                                    ])
+                                "
+                                style="flex: 1"
+                            >
+                                <a-select-option value="same_for_all">
+                                    {{ $t("leave_type.same_for_all") }}
+                                </a-select-option>
+                                <a-select-option value="employee_specific">
+                                    {{ $t("leave_type.employee_specific") }}
+                                </a-select-option>
+                            </a-select>
+                            <a-button
+                                v-if="formData.count_type === 'employee_specific'"
+                                type="primary"
+                                @click="modalOpened"
+                                style="white-space: nowrap"
+                            >
+                                <template #icon><EditOutlined /></template>
+                                {{ $t("leave_type.edit_count") }}
+                            </a-button>
+                        </a-input-group>
                     </a-form-item>
                 </a-col>
             </a-row>
 
-            <a-row :gutter="16">
-                <a-col
-                    :xs="6"
-                    :sm="6"
-                    :md="24"
-                    :lg="24"
-                    v-if="formData.is_paid == 1"
-                >
-                    <a-form-item
-                        :label="$t('leave_type.max_leaves_per_month')"
-                        name="max_leaves_per_month"
-                        :help="
-                            rules.max_leaves_per_month
-                                ? rules.max_leaves_per_month.message
-                                : null
-                        "
-                        :validateStatus="
-                            rules.max_leaves_per_month ? 'error' : null
-                        "
-                    >
-                        <a-input-number
-                            v-model:value="formData.max_leaves_per_month"
-                            :placeholder="
-                                $t('common.placeholder_default_text', [
-                                    $t('leave_type.max_leaves_per_month'),
-                                ])
-                            "
-                            style="width: 100%"
-                        />
-                    </a-form-item>
-                </a-col>
-            </a-row>
         </a-form>
         <template #footer>
             <a-space>
@@ -181,15 +148,19 @@
         @close="modalClosed"
         :data="modalData"
         :addEditType="addEditType"
+        @save="onEmployeeSpecificLeaveSave"
     />
 </template>
 <script>
 import { defineComponent, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import {
     PlusOutlined,
     LoadingOutlined,
     SaveOutlined,
+    EditOutlined,
 } from "@ant-design/icons-vue";
+import { message } from "ant-design-vue";
 import apiAdmin from "../../../../common/composable/apiAdmin";
 import common from "../../../../common/composable/common";
 import EmployeeSpecificLeaveCount from "./EmployeeSpecificLeaveCount.vue";
@@ -209,18 +180,38 @@ export default defineComponent({
         PlusOutlined,
         LoadingOutlined,
         SaveOutlined,
+        EditOutlined,
         EmployeeSpecificLeaveCount,
     },
     setup(props, { emit }) {
         const { addEditRequestAdmin, loading, rules } = apiAdmin();
+        const { t } = useI18n();
 
         const { appSetting, disabledDate, permsArray } = common();
         const modalOpen = ref(false);
         const modalData = ref({});
+        const tempEmployeeSpecificLeaves = ref({ all_form_fields: [], removed_fields: [] });
+        const createdLeaveTypeId = ref(null);
+
+        const onEmployeeSpecificLeaveSave = (data) => {
+            tempEmployeeSpecificLeaves.value = data;
+        };
 
         const modalOpened = () => {
             modalOpen.value = true;
-            modalData.value = props.data;
+            if (props.addEditType === "edit") {
+                modalData.value = props.data;
+            } else {
+                modalData.value = {
+                    xid: null,
+                    employee_specific_leave_count: tempEmployeeSpecificLeaves.value.all_form_fields.map((field) => ({
+                        x_user_id: field.user_id,
+                        total_leaves: field.total_leaves,
+                        x_leave_type_id: null,
+                        xid: field.xid,
+                    })),
+                };
+            }
         };
         const modalClosed = () => {
             modalOpen.value = false;
@@ -228,18 +219,58 @@ export default defineComponent({
         };
 
         const onSubmit = () => {
+            if (createdLeaveTypeId.value) {
+                loading.value = true;
+                const finalFields = tempEmployeeSpecificLeaves.value.all_form_fields.map(field => ({
+                    ...field,
+                    leave_type_id: createdLeaveTypeId.value
+                }));
+                axiosAdmin.post("employee-specific-leave", {
+                    all_form_fields: finalFields,
+                    removed_fields: tempEmployeeSpecificLeaves.value.removed_fields
+                }).then(() => {
+                    emit("addEditSuccess", createdLeaveTypeId.value);
+                }).catch((err) => {
+                    const errorMsg = err?.data?.message || err?.message || t("leave_type.failed_to_save_counts");
+                    message.error(errorMsg);
+                }).finally(() => {
+                    loading.value = false;
+                });
+                return;
+            }
+
             addEditRequestAdmin({
                 url: props.url,
                 data: props.formData,
                 successMessage: props.successMessage,
                 success: (res) => {
-                    emit("addEditSuccess", res.xid);
+                    if (props.addEditType === "add" && tempEmployeeSpecificLeaves.value.all_form_fields.length > 0) {
+                        createdLeaveTypeId.value = res.xid;
+                        const finalFields = tempEmployeeSpecificLeaves.value.all_form_fields.map(field => ({
+                            ...field,
+                            leave_type_id: res.xid
+                        }));
+                        return axiosAdmin.post("employee-specific-leave", {
+                            all_form_fields: finalFields,
+                            removed_fields: tempEmployeeSpecificLeaves.value.removed_fields
+                        }).then(() => {
+                            emit("addEditSuccess", res.xid);
+                        }).catch((err) => {
+                            const errorMsg = err?.data?.message || err?.message || t("leave_type.failed_to_save_counts");
+                            message.error(errorMsg);
+                            throw err;
+                        });
+                    } else {
+                        emit("addEditSuccess", res.xid);
+                    }
                 },
             });
         };
 
         const onClose = () => {
             rules.value = {};
+            tempEmployeeSpecificLeaves.value = { all_form_fields: [], removed_fields: [] };
+            createdLeaveTypeId.value = null;
             emit("closed");
         };
 
@@ -255,6 +286,7 @@ export default defineComponent({
             modalData,
             modalOpened,
             modalClosed,
+            onEmployeeSpecificLeaveSave,
 
             drawerWidth: window.innerWidth <= 991 ? "90%" : "45%",
         };

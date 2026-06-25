@@ -7,7 +7,7 @@
 				</span>
 			</template>
 			<template #icon>
-				<img style="width: 150px" :src="appSetting.light_logo_url" />
+				<img style="width: 150px" :src="appSetting.light_logo_url" :alt="appSetting.name ? appSetting.name + ' Logo' : 'Company Logo'" />
 			</template>
 			<template #extra>
 				<SyncOutlined :style="{ fontSize: '38px', color: '#7b2a72' }" spin />

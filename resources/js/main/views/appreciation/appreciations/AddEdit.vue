@@ -380,6 +380,9 @@
                                 price_amount: formData.price_amount,
                                 price_given: formFields,
                                 date: formData.date,
+                                profile_image_url: formData.profile_image_url
+                                    ? formData.profile_image_url
+                                    : (find(users, { xid: formData.user_id })?.profile_image_url),
                                 award: formData.award_id
                                     ? find(awards, { xid: formData.award_id })
                                     : undefined,
@@ -515,6 +518,21 @@ export default defineComponent({
                     allAwards.value = awardResponse.data;
                     accounts.value = accountResponse.data;
                     letterheadTemplates.value = letterheadTemplateResponse.data;
+
+                    if (props.visible && props.addEditType == "add") {
+                        if (props.formData && (props.formData.letterhead_template_id === undefined || props.formData.letterhead_template_id === null)) {
+                            const defaultTemplate = find(letterheadTemplates.value, (t) => t.title.toLowerCase().includes("award certificate"));
+                            if (defaultTemplate) {
+                                props.formData.letterhead_template_id = defaultTemplate.xid;
+                                props.formData.letterhead_title = defaultTemplate.title;
+                                nextTick(() => {
+                                    if (textEditor.value) {
+                                        textEditor.value.reSetTemplate();
+                                    }
+                                });
+                            }
+                        }
+                    }
                 }
             );
         });
@@ -655,8 +673,21 @@ export default defineComponent({
                         }
                     } else {
                         formFields.value = [];
+                        if (props.formData && (props.formData.letterhead_template_id === undefined || props.formData.letterhead_template_id === null)) {
+                            const defaultTemplate = find(letterheadTemplates.value, (t) => t.title.toLowerCase().includes("award certificate"));
+                            if (defaultTemplate) {
+                                props.formData.letterhead_template_id = defaultTemplate.xid;
+                                props.formData.letterhead_title = defaultTemplate.title;
+                            }
+                        }
                         if (textEditor.value) {
-                            textEditor.value.setHTML("");
+                            if (props.formData.letterhead_template_id) {
+                                nextTick(() => {
+                                    textEditor.value.reSetTemplate();
+                                });
+                            } else {
+                                textEditor.value.setHTML("");
+                            }
                         }
                     }
                 }

@@ -54,7 +54,7 @@
                 v-if="innerWidth <= 991"
                 :style="{
                     verticalAlign: 'middle',
-                    color: '#fff',
+                    color: (themeMode == 'dark' || appSetting.left_sidebar_theme == 'dark') ? '#fff' : 'inherit',
                 }"
                 @click="menuSelected"
             />
@@ -65,11 +65,7 @@
                 v-if="authStore && authStore.user && authStore.user.is_manager"
                 v-model:activeKey="activeKey"
                 :tabBarStyle="{
-                    color:
-                        themeMode == 'dark' ||
-                        appSetting.left_sidebar_theme == 'dark'
-                            ? '#fff'
-                            : '#000',
+                    color: (themeMode == 'dark' || appSetting.left_sidebar_theme == 'dark') ? '#fff' : 'inherit',
                     padding: '0 22px',
                 }"
                 @change="
@@ -519,6 +515,23 @@
                             key="paid_leaves"
                         >
                             <span>{{ $t("menu.paid_leaves") }}</span>
+                        </a-menu-item>
+                        <a-menu-item
+                            v-if="
+                                permsArray.includes('leaves_view') ||
+                                permsArray.includes('admin')
+                            "
+                            @click="
+                                () => {
+                                    menuSelected();
+                                    $router.push({
+                                        name: 'admin.monthly-leaves.index',
+                                    });
+                                }
+                            "
+                            key="monthly_leaves"
+                        >
+                            <span>{{ $t("menu.monthly_leaves") }}</span>
                         </a-menu-item>
                     </a-sub-menu>
                     <a-sub-menu
@@ -1286,6 +1299,19 @@
                         >
                             <span>{{ $t("menu.paid_leaves") }}</span>
                         </a-menu-item>
+                        <a-menu-item
+                            @click="
+                                () => {
+                                    menuSelected();
+                                    $router.push({
+                                        name: 'admin.self.monthly-leaves.index',
+                                    });
+                                }
+                            "
+                            key="monthly_leaves"
+                        >
+                            <span>{{ $t("menu.monthly_leaves") }}</span>
+                        </a-menu-item>
                     </a-sub-menu>
                     <a-sub-menu key="attendances">
                         <template #title>
@@ -1820,5 +1846,39 @@ export default defineComponent({
 
 .scroll-container::-webkit-scrollbar-thumb:hover {
     background: #555;
+}
+
+/* Sidebar Tabs (Self/Manager) active/hover/normal colors override - only for dark backgrounds */
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-tab,
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-tab .ant-tabs-tab-btn,
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-tab .anticon,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-tab,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-tab .ant-tabs-tab-btn,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-tab .anticon {
+    color: #ffffff !important;
+}
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-tab-active,
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-tab:hover,
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-tab:focus,
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-tab:active,
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-tab-active .anticon,
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-tab-active .ant-tabs-tab-btn,
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-tab-btn:hover,
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-tab-btn:focus,
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-tab-btn:active,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-tab-active,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-tab:hover,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-tab:focus,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-tab:active,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-tab-active .anticon,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-tab-active .ant-tabs-tab-btn,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-tab-btn:hover,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-tab-btn:focus,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-tab-btn:active {
+    color: #ffffff !important;
+}
+.dark_theme .ant-layout-sider .main-sidebar .ant-tabs-ink-bar,
+.ant-layout-sider-dark .main-sidebar .ant-tabs-ink-bar {
+    background: #ffffff !important;
 }
 </style>

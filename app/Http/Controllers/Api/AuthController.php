@@ -230,6 +230,10 @@ class AuthController extends ApiBaseController
         }
         $user->phone = $request->phone;
         $user->address = $request->address;
+        $user->dob = $request->dob ? Carbon::parse($request->dob)->format('Y-m-d') : null;
+        $user->personal_email = $request->personal_email;
+        $user->personal_phone = $request->personal_phone;
+        $user->is_married = $request->is_married;
         $user->save();
 
         return ApiResponse::make('Profile updated successfull', [
@@ -346,7 +350,8 @@ class AuthController extends ApiBaseController
         $request = request();
         $userId = $this->getIdFromHash($request->userId);
         $date = $request->date ? Carbon::parse($request->date) : null;
-        $today = Carbon::today();
+        $company = company();
+        $today = Carbon::now($company->timezone ?? 'UTC');
         $currentYear = $today->year;
 
         $query = StaffMember::where('status', 'active')->with('designation');
@@ -359,6 +364,9 @@ class AuthController extends ApiBaseController
             $query->where('id', $userId);
         }
 
+        // Apply visibility so non-admin users only see employees within their scope
+        $query = $this->applyVisibility($query, 'users');
+
         $upcomingBirthdays = $query
             ->orderByRaw("DATE_FORMAT(dob, '%m-%d') ASC")
             ->get()
@@ -366,16 +374,47 @@ class AuthController extends ApiBaseController
                 $dob = Carbon::parse($user->dob);
                 $formattedDate = Carbon::create($currentYear, $dob->month, $dob->day)->format('j F Y');
                 return [
-                    'name' => $user->name,
-                    'designation' => $user->designation->name ?? null,
+                    'name'           => $user->name,
+                    'designation'    => $user->designation->name ?? null,
                     'formatted_date' => $formattedDate,
-                    'image_url' => $user->profile_image_url
+                    'image_url'      => $user->profile_image_url
                 ];
             });
 
         return $upcomingBirthdays;
     }
 
+    public function getTodayBirthdays()
+    {
+        // Use the company's configured timezone so that "today" is correct
+        // regardless of the server's local timezone.
+        $company = company();
+        $today = Carbon::now($company->timezone ?? 'UTC');
+
+        $query = StaffMember::where('status', 'active')
+            ->with('designation')
+            ->whereRaw("DATE_FORMAT(dob, '%m-%d') = ?", [$today->format('m-d')]);
+
+        // Apply visibility so non-admin users only see employees within their scope
+        $query = $this->applyVisibility($query, 'users');
+
+        $birthdays = $query
+            ->get()
+            ->map(function ($user) use ($today) {
+                $dob = Carbon::parse($user->dob);
+                $age = $today->year - $dob->year;
+                return [
+                    'name'        => $user->name,
+                    'designation' => $user->designation->name ?? null,
+                    // email intentionally omitted — it is PII not needed by the UI
+                    'age'         => $age,
+                    'image_url'   => $user->profile_image_url,
+                    'xid'         => $user->xid,
+                ];
+            });
+
+        return $birthdays;
+    }
 
 
     public function getUpcomingAnniversaries()
@@ -383,7 +422,8 @@ class AuthController extends ApiBaseController
         $request = request();
         $userId = $this->getIdFromHash($request->userId);
         $date = $request->date ? Carbon::parse($request->date) : null;
-        $today = Carbon::today();
+        $company = company();
+        $today = Carbon::now($company->timezone ?? 'UTC');
         $currentYear = $today->year;
 
         // Base query
@@ -398,6 +438,9 @@ class AuthController extends ApiBaseController
         if ($date) {
             $query->whereRaw("DATE_FORMAT(joining_date, '%m-%d') = ?", [$date->format('m-d')]);
         }
+
+        // Apply visibility so non-admin users only see employees within their scope
+        $query = $this->applyVisibility($query, 'users');
 
         // Fetch and process anniversaries
         $anniversaries = $query
@@ -416,11 +459,11 @@ class AuthController extends ApiBaseController
                 $anniversaryDate = Carbon::createFromFormat('m-d', $joiningDate->format('m-d'));
 
                 return [
-                    'name' => $user->name,
-                    'designation' => $user->designation->name ?? null,
+                    'name'              => $user->name,
+                    'designation'       => $user->designation->name ?? null,
                     'anniversary_count' => $yearsCompleted . $this->getOrdinalSuffix($yearsCompleted),
-                    'formatted_date' => $day . $this->getOrdinalSuffix($day) . ' ' . $month,
-                    'sort_date' => $anniversaryDate,
+                    'formatted_date'    => $day . $this->getOrdinalSuffix($day) . ' ' . $month,
+                    'sort_date'         => $anniversaryDate,
                     'profile_image_url' => $user->profile_image_url
                 ];
             })
@@ -551,6 +594,7 @@ class AuthController extends ApiBaseController
                 'todaysAttendence' => $this->getTodaysPresent(),
                 'stateData' => $this->getStatsData(),
                 'upcomingBirthday' => $this->getUpcomingBirthday(),
+                'todayBirthdays' => $this->getTodayBirthdays(),
                 'departmentByNameCount' => $this->getUsersCountByDepartment(),
                 'clockInOutTime' => $this->getTodayAttendancesWithLateStatus(),
                 'getUpcomingAnniversaries' => $this->getUpcomingAnniversaries(),
@@ -558,7 +602,8 @@ class AuthController extends ApiBaseController
                 'getEmployeeStatus' => $this->getEmployeeStatus(),
                 'employeeWorkStatusCount' => $this->employeeWorkStatusCount(),
                 'getIncrementPromotions' => $this->getIncrementPromotion(),
-                'appriciationByDate' => $this->appriciationByDate()
+                'appriciationByDate' => $this->appriciationByDate(),
+                'recentAppreciations' => $this->recentAppreciations(),
             ]
         ];
 
@@ -814,5 +859,34 @@ class AuthController extends ApiBaseController
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }
+    }
+
+    public function recentAppreciations()
+    {
+        $user = user();
+
+        $appreciations = Appreciation::with(['user', 'award', 'generate'])
+            ->where('user_id', '!=', $user->id)
+            ->orderBy('date', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function ($appreciation) {
+                $certificateHtml = '';
+                if ($appreciation->generate) {
+                    $certificateHtml = $appreciation->generate->description;
+                }
+
+                return [
+                    'xid' => $appreciation->xid,
+                    'date' => $appreciation->date ? $appreciation->date->format('Y-m-d') : '',
+                    'user_name' => $appreciation->user ? $appreciation->user->name : '',
+                    'user_image' => $appreciation->user ? $appreciation->user->profile_image_url : '',
+                    'award_name' => $appreciation->award ? $appreciation->award->name : '',
+                    'certificate_html' => $certificateHtml,
+                    'generate_xid' => $appreciation->generate ? $appreciation->generate->xid : '',
+                ];
+            });
+
+        return $appreciations;
     }
 }

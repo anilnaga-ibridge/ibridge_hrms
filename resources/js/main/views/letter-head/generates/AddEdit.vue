@@ -126,7 +126,7 @@
                                                     :key="template.xid"
                                                     :value="template.xid"
                                                 >
-                                                    {{ template.title }}
+                                                    {{ template.title || $t('template.untitled') }}
                                                 </a-select-option>
                                             </a-select>
                                             <LetterheadTemplateAddButton
@@ -206,7 +206,7 @@
                                                 :title="$t('common.download')"
                                                 :payload="{
                                                     show_header_footer: 'no',
-                                                    title: formData.title,
+                                                    title: formData.title || $t('template.untitled'),
                                                     html: htmlContent,
                                                 }"
                                             />
@@ -214,7 +214,7 @@
                                                 :title="$t('common.print')"
                                                 :payload="{
                                                     show_header_footer: 'no',
-                                                    title: formData.title,
+                                                    title: formData.title || $t('template.untitled'),
                                                     html: htmlContent,
                                                 }"
                                                 :isPrint="true"
@@ -363,7 +363,12 @@ export default defineComponent({
             var selectedTemp = find(allTemplates.value, { xid: id });
 
             if (selectedTemp) {
-                props.formData.title = selectedTemp.title;
+                // Only overwrite the user-editable title when the template
+                // actually has one — prevents silently blanking the field
+                // with undefined/null if the template was saved without a title.
+                if (selectedTemp.title) {
+                    props.formData.title = selectedTemp.title;
+                }
             }
         };
 

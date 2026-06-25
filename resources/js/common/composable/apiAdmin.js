@@ -125,9 +125,16 @@ const api = (defaultTabName = "") => {
                     });
                 }
 
-                success(response.data);
-                loading.value = false;
-                rules.value = {};
+                const successResult = success(response.data);
+                if (successResult instanceof Promise) {
+                    successResult.finally(() => {
+                        loading.value = false;
+                        rules.value = {};
+                    });
+                } else {
+                    loading.value = false;
+                    rules.value = {};
+                }
             })
             .catch((errorResponse) => {
                 var err = errorResponse.data;

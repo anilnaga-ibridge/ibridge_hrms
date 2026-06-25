@@ -206,6 +206,18 @@ export default [
                 },
             },
             {
+                path: "monthly-leaves",
+                component: () =>
+                    import("../views/self/leave/monthly-leaves/index.vue"),
+                name: "admin.self.monthly-leaves.index",
+                meta: {
+                    requireAuth: true,
+                    menuParent: "leaves",
+                    barKey: "self",
+                    menuKey: (route) => "monthly_leaves",
+                },
+            },
+            {
                 path: "pre_payments",
                 component: () =>
                     import("../views/self/payrolls/pre-payments/index.vue"),

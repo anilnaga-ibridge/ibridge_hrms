@@ -52,6 +52,18 @@ export default [
                 },
             },
             {
+                path: "shift-roster",
+                component: () =>
+                    import("../views/staff-members/shift-roster/index.vue"),
+                name: "admin.shift-roster.index",
+                meta: {
+                    requireAuth: true,
+                    menuParent: "staff",
+                    menuKey: (route) => "shift-roster",
+                    permission: "shifts_view",
+                },
+            },
+            {
                 path: "employees/:id",
                 component: () =>
                     import("../views/staff-members/users/index.vue"),

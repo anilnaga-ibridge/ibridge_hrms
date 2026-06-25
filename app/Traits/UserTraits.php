@@ -28,10 +28,14 @@ trait UserTraits
         $request = request();
         $user    = user();
 
-        // User don't have any role
-        if (! $user->role || ($user->role->name != 'admin' && ! $user->is_manager)) {
-            throw new ApiException("Don't have valid permission");
-        }
+		// User don't have any role
+		if (! $user->role || ($user->role->name != 'admin' && ! $user->is_manager)) {
+			// Return empty results instead of throwing, so the frontend
+			// doesn't see a 400 error toast. The frontend falls back to self/users.
+			$query = $query->whereRaw('1 = 0');
+
+			return $query;
+		}
 
         // If user is not admin then
         // Users lists will be based on his visibility

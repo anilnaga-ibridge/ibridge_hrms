@@ -22,12 +22,17 @@ class SettingsController extends ApiBaseController
     {
         $storageSetting = Settings::where('setting_type', 'storage')->where('status', 1)->first();
 
+        if (is_null($storageSetting)) {
+            $storageSetting = Settings::withoutGlobalScope(\App\Scopes\CompanyScope::class)
+                ->where('setting_type', 'storage')->where('status', 1)->first();
+        }
+
         $storageSettingData = [
-            'filesystem' => $storageSetting->name_key,
-            'key' => $storageSetting->name_key == 'aws' ? $storageSetting->credentials['key'] : '',
-            'secret' => $storageSetting->name_key == 'aws' ? $storageSetting->credentials['secret'] : '',
-            'region' => $storageSetting->name_key == 'aws' && $storageSetting->credentials['region'] != '' ? $storageSetting->credentials['region'] : null,
-            'bucket' => $storageSetting->name_key == 'aws' ? $storageSetting->credentials['bucket'] : '',
+            'filesystem' => $storageSetting ? $storageSetting->name_key : 'local',
+            'key' => $storageSetting && $storageSetting->name_key == 'aws' ? ($storageSetting->credentials['key'] ?? '') : '',
+            'secret' => $storageSetting && $storageSetting->name_key == 'aws' ? ($storageSetting->credentials['secret'] ?? '') : '',
+            'region' => $storageSetting && $storageSetting->name_key == 'aws' && !empty($storageSetting->credentials['region']) ? $storageSetting->credentials['region'] : null,
+            'bucket' => $storageSetting && $storageSetting->name_key == 'aws' ? ($storageSetting->credentials['bucket'] ?? '') : '',
         ];
 
         return ApiResponse::make(
@@ -41,12 +46,8 @@ class SettingsController extends ApiBaseController
 
     public function updateStorage(StorageUpdateRequest $request)
     {
-        // Not Allowed in Demo Mode
-        if (env('APP_ENV') == 'production') {
-            throw new ApiException('Not Allowed In Demo Mode');
-        }
-
-        Settings::where('setting_type', 'storage')->update([
+        Settings::withoutGlobalScope(\App\Scopes\CompanyScope::class)
+            ->where('setting_type', 'storage')->update([
             'status' => 0
         ]);
 
@@ -58,7 +59,8 @@ class SettingsController extends ApiBaseController
             'driver' => 's3',
         ];
 
-        Settings::where('name_key', $request->filesystem)
+        Settings::withoutGlobalScope(\App\Scopes\CompanyScope::class)
+            ->where('name_key', $request->filesystem)
             ->update([
                 'credentials' => $request->filesystem == 'aws' ? $awsStorageSettingData : [],
                 'status' => 1

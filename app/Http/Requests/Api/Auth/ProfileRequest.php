@@ -27,6 +27,10 @@ class ProfileRequest extends FormRequest
 			'name' => 'required',
 			'email' => 'required|email',
 			'phone' => 'integer',
+			'dob' => 'nullable|date_format:Y-m-d',
+			'personal_email' => 'nullable|email',
+			'personal_phone' => 'nullable',
+			'is_married' => 'nullable|integer',
 		];
 
 		if ($this->has('password') && $this->password != '') {

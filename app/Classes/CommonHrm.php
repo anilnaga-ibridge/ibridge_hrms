@@ -20,6 +20,7 @@ use App\Models\WorkDuration;
 use App\Models\Leave;
 use App\Models\Payroll;
 use App\Models\PrePayment;
+use App\Models\EmployeeSpecificLeaveCount;
 use Illuminate\Container\Attributes\DB;
 
 class CommonHrm
@@ -31,9 +32,9 @@ class CommonHrm
         $isNextDayForTime = self::isTimeForNextDate($startTime, $endTime);
 
         if ($isNextDayForTime) {
-            $totalMinutes = ((24 - $timeArray['start_hours'] - 1) * 60) + (60 - $timeArray['start_minutes']) +  ($timeArray['end_hours'] * 60) +  $timeArray['end_minutes'];
+            $totalMinutes = ((24 - $timeArray['start_hours'] - 1) * 60) + (60 - $timeArray['start_minutes']) + ($timeArray['end_hours'] * 60) + $timeArray['end_minutes'];
         } else {
-            $totalMinutes =  (($timeArray['end_hours'] - $timeArray['start_hours'] - 1) * 60) + (60 - $timeArray['start_minutes']) +  $timeArray['end_minutes'];
+            $totalMinutes = (($timeArray['end_hours'] - $timeArray['start_hours'] - 1) * 60) + (60 - $timeArray['start_minutes']) + $timeArray['end_minutes'];
         }
 
         return $totalMinutes;
@@ -113,7 +114,7 @@ class CommonHrm
 
 
         // Calculate the final total amount
-        $totalAmount =  $totalAccountSum - $totalExpense - $totalPayRoll +  $totalDeposite - $totalPrePayment - $totalAsset - $totalAppreciation;
+        $totalAmount = $totalAccountSum - $totalExpense - $totalPayRoll + $totalDeposite - $totalPrePayment - $totalAsset - $totalAppreciation;
         $AccountUpdate = Account::find($id);
 
         if ($AccountUpdate) {
@@ -128,21 +129,24 @@ class CommonHrm
             $accountEntries = AccountEntry::where('account_id', $accountId)->where('type', $type)->where('payroll_id', $id)->first();
             if (!$accountEntries) {
                 $accountEntries = new AccountEntry();
-            };
+            }
+            ;
             $accountEntries->payroll_id = $id;
             $accountEntries->is_debit = 1;
         } else if ($type == 'pre_payment') {
             $accountEntries = AccountEntry::where('type', $type)->where('pre_payment_id', $id)->first();
             if (!$accountEntries) {
                 $accountEntries = new AccountEntry();
-            };
+            }
+            ;
             $accountEntries->pre_payment_id = $id;
             $accountEntries->is_debit = 1;
         } else if ($type == 'expense') {
             $accountEntries = AccountEntry::where('type', $type)->where('expense_id', $id)->first();
             if (!$accountEntries) {
                 $accountEntries = new AccountEntry();
-            };
+            }
+            ;
             $accountEntries->expense_id = $id;
             $accountEntries->is_debit = 1;
         } else if ($type == 'asset') {
@@ -150,7 +154,8 @@ class CommonHrm
                 $accountEntries = new AccountEntry();
             } else {
                 $accountEntries = AccountEntry::where('account_id', $oldAccountId)->where('type', $type)->where('asset_id', $id)->first();
-            };
+            }
+            ;
             $accountEntries->asset_id = $id;
             $accountEntries->is_debit = 1;
         } else if ($type == 'appreciation') {
@@ -158,7 +163,8 @@ class CommonHrm
                 $accountEntries = new AccountEntry();
             } else {
                 $accountEntries = AccountEntry::where('account_id', $oldAccountId)->where('type', $type)->where('appreciation_id', $id)->first();
-            };
+            }
+            ;
             $accountEntries->appreciation_id = $id;
             $accountEntries->is_debit = 1;
         } else if ($type == 'deposit') {
@@ -166,14 +172,16 @@ class CommonHrm
                 $accountEntries = new AccountEntry();
             } else {
                 $accountEntries = AccountEntry::where('account_id', $oldAccountId)->where('type', $type)->where('deposit_id', $id)->first();
-            };
+            }
+            ;
             $accountEntries->deposit_id = $id;
             $accountEntries->is_debit = 0;
         } else if ($type == 'initial_balance') {
             $accountEntries = AccountEntry::where('account_id', $accountId)->where('type', $type)->where('initial_account_id', $id)->first();
             if (!$accountEntries) {
                 $accountEntries = new AccountEntry();
-            };
+            }
+            ;
             $accountEntries->initial_account_id = $id;
             $accountEntries->is_debit = 0;
         }
@@ -204,7 +212,7 @@ class CommonHrm
         if ($timeArray['end_hours'] > $timeArray['start_hours']) {
             $isLate = true;
         } else if ($timeArray['end_hours'] == $timeArray['start_hours']) {
-            $isLate =  $timeArray['end_minutes'] <= $timeArray['start_minutes'] ? false : true;
+            $isLate = $timeArray['end_minutes'] <= $timeArray['start_minutes'] ? false : true;
         }
 
         if ($currentDate && $currentDate != null) {
@@ -213,7 +221,8 @@ class CommonHrm
 
             if ($current > $actual) {
                 $isLate = true;
-            };
+            }
+            ;
         }
 
         return $isLate;
@@ -228,13 +237,13 @@ class CommonHrm
             $earlyClockInTime = $attendance && $attendance->early_clock_in_time ? $attendance->early_clock_in_time : 0;
 
             if ($earlyClockInTime) {
-                $actualAllowedClockIn =  Carbon::createFromFormat('H:i:s', $attendance->office_clock_in_time)->subMinutes($earlyClockInTime)->format('H:i:s');
+                $actualAllowedClockIn = Carbon::createFromFormat('H:i:s', $attendance->office_clock_in_time)->subMinutes($earlyClockInTime)->format('H:i:s');
             } else {
                 $actualAllowedClockIn = $attendance->office_clock_in_time;
             }
             $earlyClockOutTime = $attendance->allow_clock_out_till ? $attendance->allow_clock_out_till : 0;
             if ($earlyClockOutTime) {
-                $actualAllowedClockOut =  Carbon::createFromFormat('H:i:s', $attendance->office_clock_out_time)->addMinutes($earlyClockOutTime)->format('H:i:s');
+                $actualAllowedClockOut = Carbon::createFromFormat('H:i:s', $attendance->office_clock_out_time)->addMinutes($earlyClockOutTime)->format('H:i:s');
             } else {
                 $actualAllowedClockOut = $attendance->office_clock_out_time;
             }
@@ -242,13 +251,13 @@ class CommonHrm
             $earlyClockInTime = $company && $company->early_clock_in_time ? $company->early_clock_in_time : 0;
 
             if ($earlyClockInTime) {
-                $actualAllowedClockIn =  Carbon::createFromFormat('H:i:s', $company->clock_in_time)->subMinutes($earlyClockInTime)->format('H:i:s');
+                $actualAllowedClockIn = Carbon::createFromFormat('H:i:s', $company->clock_in_time)->subMinutes($earlyClockInTime)->format('H:i:s');
             } else {
                 $actualAllowedClockIn = $company->clock_in_time;
             }
             $earlyClockOutTime = $company->allow_clock_out_till ? $company->allow_clock_out_till : 0;
             if ($earlyClockOutTime) {
-                $actualAllowedClockOut =  Carbon::createFromFormat('H:i:s', $company->clock_out_time)->addMinutes($earlyClockOutTime)->format('H:i:s');
+                $actualAllowedClockOut = Carbon::createFromFormat('H:i:s', $company->clock_out_time)->addMinutes($earlyClockOutTime)->format('H:i:s');
             } else {
                 $actualAllowedClockOut = $company->clock_out_time;
             }
@@ -293,9 +302,11 @@ class CommonHrm
                 $attendanceDate = Carbon::parse($attendance->date); // date only, e.g. '2025-06-03'
                 $clockInDate = $attedanceClockInDateTime->copy()->startOfDay(); // extract Y-m-d in company timezone
 
-                if (strtotime($attendance->office_clock_out_time) <= strtotime($attendance->office_clock_in_time)) {
+                if (strtotime($attendance->office_clock_out_time) == strtotime($attendance->office_clock_in_time)) {
+                    // Equal-hour overnight shift -> always crosses midnight
+                    $shiftClockOutDate = $attendanceDate->copy()->addDay();
+                } else if (strtotime($attendance->office_clock_out_time) < strtotime($attendance->office_clock_in_time)) {
                     // 3. Determine which date to use for shift clock-out
-                    // if ($attendanceDate->equalTo($clockInDate)) {
                     if ($attendanceDate->isSameDay($clockInDate)) {
                         // Same date → shift crosses midnight → use next day for clock-out
                         $shiftClockOutDate = $attendanceDate->copy()->addDay();
@@ -303,7 +314,6 @@ class CommonHrm
                         // Different date → use clock-in date directly
                         $shiftClockOutDate = $clockInDate;
                     }
-                    // dd($attendanceDate, $clockInDate, $shiftClockOutDate);
                 } else {
                     $shiftClockOutDate = $clockInDate;
                 }
@@ -331,7 +341,7 @@ class CommonHrm
                 if ($lastStarted) {
                     $now = Carbon::now($company->timezone);
                     if ($now->gt($shiftClockOutDateTime)) {
-                        $start = Carbon::createFromFormat('Y-m-d H:i:s', $shiftClockOutDate->format('Y-m-d') . ' ' .  $lastStarted->start_time, $company->timezone);
+                        $start = Carbon::createFromFormat('Y-m-d H:i:s', $shiftClockOutDate->format('Y-m-d') . ' ' . $lastStarted->start_time, $company->timezone);
 
                         $endTime = $shiftClockOutDateTime;
                     } else {
@@ -353,9 +363,11 @@ class CommonHrm
                 $attendanceDate = Carbon::parse($attendance->date); // date only, e.g. '2025-06-03'
                 $clockInDate = $attedanceClockInDateTime->copy()->startOfDay(); // extract Y-m-d in company timezone
 
-                if (strtotime($company->clock_out_time) <= strtotime($company->clock_in_time)) {
+                if (strtotime($company->clock_out_time) == strtotime($company->clock_in_time)) {
+                    // Equal-hour overnight shift -> always crosses midnight
+                    $shiftClockOutDate = $attendanceDate->copy()->addDay();
+                } else if (strtotime($company->clock_out_time) < strtotime($company->clock_in_time)) {
                     // 3. Determine which date to use for shift clock-out
-                    // if ($attendanceDate->equalTo($clockInDate)) {
                     if ($attendanceDate->isSameDay($clockInDate)) {
                         // Same date → shift crosses midnight → use next day for clock-out
                         $shiftClockOutDate = $attendanceDate->copy()->addDay();
@@ -363,7 +375,6 @@ class CommonHrm
                         // Different date → use clock-in date directly
                         $shiftClockOutDate = $clockInDate;
                     }
-                    // dd($attendanceDate, $clockInDate, $shiftClockOutDate);
                 } else {
                     $shiftClockOutDate = $clockInDate;
                 }
@@ -391,7 +402,7 @@ class CommonHrm
                 if ($lastStarted) {
                     $now = Carbon::now($company->timezone);
                     if ($now->gt($shiftClockOutDateTime)) {
-                        $start = Carbon::createFromFormat('Y-m-d H:i:s', $shiftClockOutDate->format('Y-m-d') . ' ' .  $lastStarted->start_time, $company->timezone);
+                        $start = Carbon::createFromFormat('Y-m-d H:i:s', $shiftClockOutDate->format('Y-m-d') . ' ' . $lastStarted->start_time, $company->timezone);
                         // $start->subDay();
                         $endTime = $shiftClockOutDateTime;
                     } else {
@@ -427,7 +438,7 @@ class CommonHrm
                                 if ($shiftClockOutDateTime && $shiftClockOutDateTime != '') {
                                     $now = Carbon::now($company->timezone);
                                     if ($now->gt($shiftClockOutDateTime)) {
-                                        $start = Carbon::createFromFormat('Y-m-d H:i:s', $shiftClockOutDate->format('Y-m-d') . ' ' .  $workDuration->start_time, $company->timezone);
+                                        $start = Carbon::createFromFormat('Y-m-d H:i:s', $shiftClockOutDate->format('Y-m-d') . ' ' . $workDuration->start_time, $company->timezone);
                                         // $start->subDay();
                                         $endTime = $shiftClockOutDateTime;
                                     } else {
@@ -445,7 +456,7 @@ class CommonHrm
 
                                     $now = Carbon::now($company->timezone)->format('H:i:s');
                                     $start = Carbon::createFromFormat('H:i:s', $workDuration->start_time);
-                                    $duration = $this->getMinutesFromTimes($workDuration->start_time, $now);
+                                    $duration = self::getMinutesFromTimes($workDuration->start_time, $now);
                                     $workDuration->duration = $duration;
                                     $totalBreakTime += $duration;
                                 }
@@ -455,7 +466,7 @@ class CommonHrm
                                 if ($shiftClockOutDateTime && $shiftClockOutDateTime != '') {
                                     $now = Carbon::now($company->timezone);
                                     if ($now->gt($shiftClockOutDateTime)) {
-                                        $start = Carbon::createFromFormat('Y-m-d H:i:s', $shiftClockOutDate->format('Y-m-d') . ' ' .  $workDuration->start_time, $company->timezone);
+                                        $start = Carbon::createFromFormat('Y-m-d H:i:s', $shiftClockOutDate->format('Y-m-d') . ' ' . $workDuration->start_time, $company->timezone);
                                         $endTime = $shiftClockOutDateTime;
                                     } else {
                                         $endTime = $now;
@@ -470,12 +481,13 @@ class CommonHrm
 
                                     $now = Carbon::now($company->timezone)->format('H:i:s');
                                     $start = Carbon::createFromFormat('H:i:s', $workDuration->start_time);
-                                    $duration = $this->getMinutesFromTimes($workDuration->start_time, $now);
+                                    $duration = self::getMinutesFromTimes($workDuration->start_time, $now);
                                     $workDuration->duration = $duration;
                                 }
                             }
                         }
-                    };
+                    }
+                    ;
                     if ($breaks == 0) {
                         $averageBreak = ($totalBreakTime / 1);
                     } else {
@@ -527,19 +539,21 @@ class CommonHrm
 
         $earlyClockInTime = $user && $user->shift ? $user->shift->early_clock_in_time : $company->early_clock_in_time;
         if ($earlyClockInTime) {
-            $actualAllowedClockIn =  Carbon::createFromFormat('H:i:s', $clockInTime)->subMinutes($earlyClockInTime)->format('H:i:s');
+            $actualAllowedClockIn = Carbon::createFromFormat('H:i:s', $clockInTime)->subMinutes($earlyClockInTime)->format('H:i:s');
         } else {
             $actualAllowedClockIn = $clockInTime;
         }
         $earlyClockOutTime = $user && $user->shift ? $user->shift->allow_clock_out_till : $company->allow_clock_out_till;
         if ($earlyClockOutTime) {
-            $actualAllowedClockOut =  Carbon::createFromFormat('H:i:s', $clockOutTime)->addMinutes($earlyClockOutTime)->format('H:i:s');
+            $actualAllowedClockOut = Carbon::createFromFormat('H:i:s', $clockOutTime)->addMinutes($earlyClockOutTime)->format('H:i:s');
         } else {
             $actualAllowedClockOut = $clockOutTime;
         }
 
         // If user have shift then shift time will be return
         // Else company time will be return
+        $isRemote = $user && $user->shift ? $user->shift->is_remote : false;
+
         return [
             'clock_in_time' => $clockInTime,
             'clock_out_time' => $clockOutTime,
@@ -551,6 +565,7 @@ class CommonHrm
             'actual_allowed_clock_in_time' => $actualAllowedClockIn,
             'actual_allowed_clock_out_time' => $actualAllowedClockOut,
             'is_next_day' => $user && $user->shift ? $user->shift->is_next_day : 0,
+            'is_remote' => $isRemote,
             'capture_location' => $captureLocation,
         ];
     }
@@ -560,7 +575,7 @@ class CommonHrm
         $company = company();
         $totalDifference = 0;
 
-        $clockInTime  = $clockIn
+        $clockInTime = $clockIn
             ? $clockIn
             : $company->clock_in_time;
         $clockOutTime = $clockOut
@@ -611,14 +626,54 @@ class CommonHrm
     public static function getFincialYearStartEndDate($year)
     {
         $company = company();
-        $startMonth = (int)$company->leave_start_month;
+        $startMonth = (int) $company->leave_start_month;
 
         $startDate = Carbon::create($year, $startMonth, 1, 0, 0, 0)->setTimezone('UTC')->startOfDay();
         $endDate = $startDate->copy()->addYear()->subDay();
 
         return [
             'startDate' => $startDate,
-            'endDate'   => $endDate
+            'endDate' => $endDate
+        ];
+    }
+
+    /**
+     * Resolve the effective leave quota for a given user and leave type.
+     *
+     * - same_for_all  → use leave_types.total_leaves & leave_types.max_leaves_per_month
+     * - employee_specific → use employee_specific_leave_counts row for this user;
+     *                        if no row exists, entitlement is 0 (no fallback to global).
+     *
+     * @return array{totalLeaves: int, maxLeavesPerMonth: int|null, monthlyLeaveExpiryCycle: int}
+     */
+    public static function getEffectiveLeaveQuota(int $userId, LeaveType $leaveType): array
+    {
+        $specificRecord = EmployeeSpecificLeaveCount::where('user_id', $userId)
+            ->where('leave_type_id', $leaveType->id)
+            ->first();
+
+        if ($specificRecord && $leaveType->count_type === 'employee_specific') {
+            return [
+                'totalLeaves' => (int) $specificRecord->total_leaves,
+                'maxLeavesPerMonth' => $specificRecord->max_leaves_per_month !== null ? (int)$specificRecord->max_leaves_per_month : 0,
+                'monthlyLeaveExpiryCycle' => $specificRecord->monthly_leave_expiry_cycle !== null ? (int)$specificRecord->monthly_leave_expiry_cycle : ($leaveType->monthly_leave_expiry_cycle ?? 3),
+            ];
+        }
+
+        if ($leaveType->count_type === 'employee_specific') {
+            // No row configured → zero entitlement
+            return [
+                'totalLeaves' => 0,
+                'maxLeavesPerMonth' => 0,
+                'monthlyLeaveExpiryCycle' => 3,
+            ];
+        }
+
+        // same_for_all (or any unrecognised type) → global values
+        return [
+            'totalLeaves' => (int) $leaveType->total_leaves,
+            'maxLeavesPerMonth' => $leaveType->max_leaves_per_month,
+            'monthlyLeaveExpiryCycle' => $leaveType->monthly_leave_expiry_cycle ?? 3,
         ];
     }
 
@@ -630,7 +685,26 @@ class CommonHrm
         $isHoliday = Holiday::whereDate('date', $date)->exists();
 
         $leaveType = LeaveType::find($leaveTypeId);
-        $maxLeavePerMonth = $leaveType->max_leaves_per_month;
+
+        if ($leaveType && $leaveType->isMonthlyLeave()) {
+            $isPaid = \App\Models\EmployeeMonthlyLeave::where('employee_id', $userId)
+                ->where('status', 'ACTIVE')
+                ->exists();
+
+            return [
+                'isHoliday' => $isHoliday,
+                'isPaid' => $isPaid,
+                'paidLeaveTakenThisMonth' => 0,
+                'totalLeaveTakenThisYear' => 0,
+                'totalLeaves' => \App\Models\EmployeeMonthlyLeave::where('employee_id', $userId)->where('status', 'ACTIVE')->count(),
+                'maxLeavePerMonth' => null,
+            ];
+        }
+
+        // Resolve effective quota (handles employee_specific vs same_for_all)
+        $quota = self::getEffectiveLeaveQuota($userId, $leaveType);
+        $totalLeavesForEmployee = $quota['totalLeaves'];
+        $maxLeavesPerMonthForEmployee = $quota['maxLeavesPerMonth'];
 
         // Get financial year
         $financialYear = self::getFincialYearFromDate($date);
@@ -641,11 +715,13 @@ class CommonHrm
         $paidLeaveTakenThisMonth = self::totalPaidLeavesByYearMonth($leaveTypeId, $userId, $financialYear, $leaveMonth);
         $totalLeaveTakenThisYear = self::totalPaidLeavesByYear($leaveTypeId, $userId, $financialYear);
 
-        // Determine if paid leave is allowed
+
+
+        // Determine if paid leave is allowed based on employee-effective quota
         if (!$isHoliday) {
             if (
-                $totalLeaveTakenThisYear >= $leaveType->total_leaves ||
-                ($maxLeavePerMonth !== null && $paidLeaveTakenThisMonth >= $maxLeavePerMonth)
+                $totalLeaveTakenThisYear >= $totalLeavesForEmployee ||
+                ($maxLeavesPerMonthForEmployee !== null && $maxLeavesPerMonthForEmployee !== 0 && $paidLeaveTakenThisMonth >= $maxLeavesPerMonthForEmployee)
             ) {
                 $isPaid = false;
             }
@@ -656,11 +732,11 @@ class CommonHrm
 
         return [
             'isHoliday' => $isHoliday,
-            'isPaid'   => $isPaid,
+            'isPaid' => $isPaid,
             'paidLeaveTakenThisMonth' => $paidLeaveTakenThisMonth,
             'totalLeaveTakenThisYear' => $totalLeaveTakenThisYear,
-            'totalLeaves' => $leaveType->total_leaves,
-            'maxLeavePerMonth' => $maxLeavePerMonth,
+            'totalLeaves' => $totalLeavesForEmployee,
+            'maxLeavePerMonth' => $maxLeavesPerMonthForEmployee,
         ];
     }
 
@@ -682,7 +758,7 @@ class CommonHrm
         $dateDetails = self::getDateDetails($date);
         $company = company();
         $dateYear = $dateDetails['year'];
-        $startMonth = (int)$company->leave_start_month;
+        $startMonth = (int) $company->leave_start_month;
 
         // Set Date as Date Object
         $dateObject = Carbon::createFromFormat('Y-m-d H:i:s', $date . ' 00:00:00', $company->timezone);
@@ -777,22 +853,14 @@ class CommonHrm
 
     public static function getIpAddress()
     {
-        $ipaddress = '';
+        $ipaddress = request()->ip() ?? 'UNKNOWN';
 
-        if (isset($_SERVER['HTTP_CLIENT_IP']))
-            $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
-        else if (isset($_SERVER['HTTP_X_FORWARDED_FOR']))
-            $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        else if (isset($_SERVER['HTTP_X_FORWARDED']))
-            $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
-        else if (isset($_SERVER['HTTP_FORWARDED_FOR']))
-            $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
-        else if (isset($_SERVER['HTTP_FORWARDED']))
-            $ipaddress = $_SERVER['HTTP_FORWARDED'];
-        else if (isset($_SERVER['REMOTE_ADDR']))
-            $ipaddress = $_SERVER['REMOTE_ADDR'];
-        else
-            $ipaddress = 'UNKNOWN';
+        if (in_array($ipaddress, ['::1', '127.0.0.1', 'UNKNOWN'])) {
+            $hostIp = gethostbyname(gethostname());
+            if ($hostIp != gethostname()) {
+                $ipaddress = $hostIp;
+            }
+        }
 
         return $ipaddress;
     }
@@ -1006,12 +1074,12 @@ class CommonHrm
 
                 $beforehalfMinutes = ($totalMinutesOfShift / 2) + ($shiftClockInTime['allow_clock_out_till']);
 
-                $actualAllowedLeaveClockOut =  Carbon::createFromFormat('H:i:s', $shiftClockInTime['clock_in_time'])
+                $actualAllowedLeaveClockOut = Carbon::createFromFormat('H:i:s', $shiftClockInTime['clock_in_time'])
                     ->addMinutes($beforehalfMinutes)->format('H:i:s');
 
                 $afterhalfMinutes = ($totalMinutesOfShift / 2) - ($shiftClockInTime['early_clock_in_time']);
 
-                $actualAllowedAfterBreakIn =  Carbon::createFromFormat('H:i:s', $shiftClockInTime['clock_in_time'])
+                $actualAllowedAfterBreakIn = Carbon::createFromFormat('H:i:s', $shiftClockInTime['clock_in_time'])
                     ->addMinutes($afterhalfMinutes)->format('H:i:s');
 
                 if ($holiday->half_holiday == 'before_break') {
@@ -1109,7 +1177,7 @@ class CommonHrm
 
                 $afterhalfMinutes = ($totalMinutesOfShift / 2) - ($shiftClockInTime['early_clock_in_time']);
 
-                $actualAllowedAfterBreakIn =  Carbon::createFromFormat('H:i:s', $shiftClockInTime['clock_in_time'])
+                $actualAllowedAfterBreakIn = Carbon::createFromFormat('H:i:s', $shiftClockInTime['clock_in_time'])
                     ->addMinutes($afterhalfMinutes)->format('H:i:s');
 
                 if ($leave->half_leave == 'before_break') {
@@ -1402,32 +1470,32 @@ class CommonHrm
                     'holiday_name' => $holidayName,
                     'is_leave' => $isLeave,
                     'leave_name' => $leaveName,
-                    'is_late'   => $isUserLate,
+                    'is_late' => $isUserLate,
                     'late_time' => $lateTime,
-                    'clock_in'  => $isAttendanceDataFound?->clock_in_date_time ?? '',
+                    'clock_in' => $isAttendanceDataFound?->clock_in_date_time ?? '',
                     'clock_out' => $isAttendanceDataFound?->clock_out_date_time ?? '',
                     'clock_in_ip' => $isAttendanceDataFound?->clock_in_ip_address ?? '',
                     'clock_out_ip' => $isAttendanceDataFound?->clock_out_ip_address ?? '',
                     'leave_reason' => $leaveReason,
                     'worked_time' => $totalWorkDurationInMinutes,
                     'office_time' => $office_time,
-                    'clock_in_latitude'  => $isAttendanceDataFound?->clock_in_latitude ?? '',
-                    'clock_in_longitude'  => $isAttendanceDataFound?->clock_in_longitude ?? '',
-                    'clock_in_location_accuracy'  => $isAttendanceDataFound?->clock_in_location_accuracy ?? '',
-                    'clock_in_location_name'  => $isAttendanceDataFound?->clock_in_location_name ?? '',
-                    'clock_in_browser'  => $isAttendanceDataFound?->clock_in_browser ?? '',
-                    'clock_in_platform'  => $isAttendanceDataFound?->clock_in_platform ?? '',
-                    'clock_in_device_type'  => $isAttendanceDataFound?->clock_in_device_type ?? '',
-                    'clock_in_user_agent'  => $isAttendanceDataFound?->clock_in_user_agent ?? '',
+                    'clock_in_latitude' => $isAttendanceDataFound?->clock_in_latitude ?? '',
+                    'clock_in_longitude' => $isAttendanceDataFound?->clock_in_longitude ?? '',
+                    'clock_in_location_accuracy' => $isAttendanceDataFound?->clock_in_location_accuracy ?? '',
+                    'clock_in_location_name' => $isAttendanceDataFound?->clock_in_location_name ?? '',
+                    'clock_in_browser' => $isAttendanceDataFound?->clock_in_browser ?? '',
+                    'clock_in_platform' => $isAttendanceDataFound?->clock_in_platform ?? '',
+                    'clock_in_device_type' => $isAttendanceDataFound?->clock_in_device_type ?? '',
+                    'clock_in_user_agent' => $isAttendanceDataFound?->clock_in_user_agent ?? '',
 
-                    'clock_out_latitude'  => $isAttendanceDataFound?->clock_out_latitude ?? '',
-                    'clock_out_longitude'  => $isAttendanceDataFound?->clock_out_longitude ?? '',
-                    'clock_out_location_accuracy'  => $isAttendanceDataFound?->clock_out_location_accuracy ?? '',
-                    'clock_out_location_name'  => $isAttendanceDataFound?->clock_out_location_name ?? '',
-                    'clock_out_browser'  => $isAttendanceDataFound?->clock_out_browser ?? '',
-                    'clock_out_platform'  => $isAttendanceDataFound?->clock_out_platform ?? '',
-                    'clock_out_device_type'  => $isAttendanceDataFound?->clock_out_device_type ?? '',
-                    'clock_out_user_agent'  => $isAttendanceDataFound?->clock_out_user_agent ?? '',
+                    'clock_out_latitude' => $isAttendanceDataFound?->clock_out_latitude ?? '',
+                    'clock_out_longitude' => $isAttendanceDataFound?->clock_out_longitude ?? '',
+                    'clock_out_location_accuracy' => $isAttendanceDataFound?->clock_out_location_accuracy ?? '',
+                    'clock_out_location_name' => $isAttendanceDataFound?->clock_out_location_name ?? '',
+                    'clock_out_browser' => $isAttendanceDataFound?->clock_out_browser ?? '',
+                    'clock_out_platform' => $isAttendanceDataFound?->clock_out_platform ?? '',
+                    'clock_out_device_type' => $isAttendanceDataFound?->clock_out_device_type ?? '',
+                    'clock_out_user_agent' => $isAttendanceDataFound?->clock_out_user_agent ?? '',
                 ];
 
                 $totalLateDays += $isUserLate;
@@ -1629,9 +1697,9 @@ class CommonHrm
                     'holiday_name' => $holidayName,
                     'is_leave' => $isLeave,
                     'leave_name' => $leaveName,
-                    'clock_in'  => $isAttendanceDataFound?->clock_in_date_time ?? '',
-                    'clock_out'  => $isAttendanceDataFound?->clock_out_date_time ?? '',
-                    'leave_reason'  => $leaveReason,
+                    'clock_in' => $isAttendanceDataFound?->clock_in_date_time ?? '',
+                    'clock_out' => $isAttendanceDataFound?->clock_out_date_time ?? '',
+                    'leave_reason' => $leaveReason,
                 ];
             }
 
@@ -1686,25 +1754,72 @@ class CommonHrm
         $leaveDates = CarbonPeriod::create($leave->start_date, $leave->end_date);
         $data = [];
 
+        $isMonthlyLeave = $leave->leaveType && $leave->leaveType->isMonthlyLeave();
+
         foreach ($leaveDates as $leaveDate) {
             $date = $leaveDate->format('Y-m-d');
 
-            // Get holiday and leave-related data
-            $leaveInfo = self::isPaidLeaveOrNot($date, $leave->user_id, $leave->leave_type_id);
-
-            $data[] = [
-                'date' => $leaveDate,
-                'totalLeaveTakenThisYear' => $leaveInfo['totalLeaveTakenThisYear'],
-                'paidLeaveTakenThisMonth' => $leaveInfo['paidLeaveTakenThisMonth'],
-                'total_leaves' => $leaveInfo['totalLeaves'],
-                'maxLeavePerMonth' => $leaveInfo['maxLeavePerMonth'],
-                'isPaid' => $leaveInfo['isPaid'],
-            ];
+            $isPaid = false;
 
             // Check if attendance already exists
             $existing = Attendance::where('user_id', $leave->user_id)
                 ->whereDate('date', $date)
                 ->first();
+
+            if ($isMonthlyLeave) {
+                if (!$existing) {
+                    // Check if a non-leave attendance record already exists for this date
+                    $hasExistingNonLeave = Attendance::where('user_id', $leave->user_id)
+                        ->whereDate('date', $date)
+                        ->where('is_leave', 0)
+                        ->exists();
+
+                    if (!$hasExistingNonLeave) {
+                        // Find oldest ACTIVE monthly leave to mark as USED (FIFO approach)
+                        $activeMonthlyLeave = \App\Models\EmployeeMonthlyLeave::where('employee_id', $leave->user_id)
+                            ->where('status', 'ACTIVE')
+                            ->orderBy('credited_date')
+                            ->first();
+
+                        if ($activeMonthlyLeave) {
+                            $activeMonthlyLeave->status = 'USED';
+                            $activeMonthlyLeave->used_date = \Carbon\Carbon::now();
+                            $activeMonthlyLeave->used_in_leave_id = $leave->id;
+                            $activeMonthlyLeave->save();
+
+                            $isPaid = true;
+                        } else {
+                            $isPaid = false;
+                        }
+                    } else {
+                        $isPaid = false;
+                    }
+                } else {
+                    $isPaid = false;
+                }
+
+                $data[] = [
+                    'date' => $leaveDate,
+                    'totalLeaveTakenThisYear' => 0,
+                    'paidLeaveTakenThisMonth' => 0,
+                    'total_leaves' => 0,
+                    'maxLeavePerMonth' => null,
+                    'isPaid' => $isPaid,
+                ];
+            } else {
+                // Get holiday and leave-related data
+                $leaveInfo = self::isPaidLeaveOrNot($date, $leave->user_id, $leave->leave_type_id);
+                $isPaid = $leaveInfo['isPaid'];
+
+                $data[] = [
+                    'date' => $leaveDate,
+                    'totalLeaveTakenThisYear' => $leaveInfo['totalLeaveTakenThisYear'],
+                    'paidLeaveTakenThisMonth' => $leaveInfo['paidLeaveTakenThisMonth'],
+                    'total_leaves' => $leaveInfo['totalLeaves'],
+                    'maxLeavePerMonth' => $leaveInfo['maxLeavePerMonth'],
+                    'isPaid' => $isPaid,
+                ];
+            }
 
             if (!$existing) {
                 $attendance = new Attendance();
@@ -1714,7 +1829,7 @@ class CommonHrm
                 $attendance->leave_id = $leave->id;
                 $attendance->leave_type_id = $leave->leave_type_id;
                 $attendance->is_half_day = $leave->is_half_day;
-                $attendance->is_paid = $leaveInfo['isPaid'];
+                $attendance->is_paid = $isPaid;
                 $attendance->status = $leave->is_half_day ? 'half_day' : 'on_leave';
                 $attendance->reason = $leave->reason;
                 $attendance->save();
@@ -1769,5 +1884,106 @@ class CommonHrm
         }
 
         return $locationName ?: '';
+    }
+
+    public static function calculateDistance($lat1, $lng1, $lat2, $lng2)
+    {
+        $earthRadius = 6371000;
+
+        $latFrom = deg2rad($lat1);
+        $lngFrom = deg2rad($lng1);
+        $latTo = deg2rad($lat2);
+        $lngTo = deg2rad($lng2);
+
+        $latDelta = $latTo - $latFrom;
+        $lngDelta = $lngTo - $lngFrom;
+
+        $a = sin($latDelta / 2) * sin($latDelta / 2) +
+            cos($latFrom) * cos($latTo) *
+            sin($lngDelta / 2) * sin($lngDelta / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
+    }
+
+    public static function processEmployeeMonthlyLeaves($employee, $targetDate = null)
+    {
+        $targetDate = $targetDate ?: \Carbon\Carbon::now();
+
+        // Option 1: Credit from joining month immediately
+        $joiningDate = $employee->joining_date
+            ? \Carbon\Carbon::parse($employee->joining_date)
+            : \Carbon\Carbon::parse($employee->created_at);
+
+        // Fetch dynamic limit based on 'Monthly Leave' leave type configuration
+        $leaveType = \App\Models\LeaveType::withoutGlobalScope(\App\Scopes\CompanyScope::class)
+            ->where('company_id', $employee->company_id)
+            ->get()
+            ->first(fn($t) => $t->isMonthlyLeave());
+
+        if (!$leaveType) {
+            return;
+        }
+
+        $quota = self::getEffectiveLeaveQuota($employee->id, $leaveType);
+        $limit = $quota['monthlyLeaveExpiryCycle'];
+        if ($leaveType->count_type === 'employee_specific') {
+            $maxLeavesPerMonth = $quota['maxLeavesPerMonth'];
+        } else {
+            $maxLeavesPerMonth = $quota['maxLeavesPerMonth'] > 0 ? $quota['maxLeavesPerMonth'] : ($leaveType->max_leaves_per_month > 0 ? $leaveType->max_leaves_per_month : 1);
+        }
+
+        $endLoopDate = $targetDate->copy()->startOfMonth();
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($employee, $joiningDate, $endLoopDate, $limit, $maxLeavesPerMonth) {
+            // Lock the user/employee row to make the operations atomic per employee
+            \App\Models\User::withoutGlobalScope(\App\Scopes\CompanyScope::class)
+                ->where('id', $employee->id)
+                ->lockForUpdate()
+                ->first();
+
+            // Start looping chronologically from the 1st of the joining month
+            $currentLoopDate = $joiningDate->copy()->startOfMonth();
+
+            while ($currentLoopDate->lessThanOrEqualTo($endLoopDate)) {
+                $creditedDateStr = $currentLoopDate->toDateString();
+
+                // Expire any leaves that are older than the limit
+                $expiryThresholdDate = $currentLoopDate->copy()->subMonths($limit)->startOfMonth();
+
+                \App\Models\EmployeeMonthlyLeave::withoutGlobalScope(\App\Scopes\CompanyScope::class)
+                    ->where('company_id', $employee->company_id)
+                    ->where('employee_id', $employee->id)
+                    ->where('status', 'ACTIVE')
+                    ->where('credited_date', '<', $expiryThresholdDate)
+                    ->update([
+                        'status' => 'EXPIRED',
+                        'updated_at' => \Carbon\Carbon::now()
+                    ]);
+
+                // Idempotency: Check whether current month's leaves already exist
+                $existingCount = \App\Models\EmployeeMonthlyLeave::withoutGlobalScope(\App\Scopes\CompanyScope::class)
+                    ->where('company_id', $employee->company_id)
+                    ->where('employee_id', $employee->id)
+                    ->whereDate('credited_date', $creditedDateStr)
+                    ->count();
+
+                if ($existingCount < $maxLeavesPerMonth) {
+                    // Credit the remaining month's leaves (using the 1st of that month)
+                    $needed = $maxLeavesPerMonth - $existingCount;
+                    for ($i = 0; $i < $needed; $i++) {
+                        \App\Models\EmployeeMonthlyLeave::withoutGlobalScope(\App\Scopes\CompanyScope::class)->create([
+                            'company_id' => $employee->company_id,
+                            'employee_id' => $employee->id,
+                            'credited_date' => $creditedDateStr,
+                            'status' => 'ACTIVE',
+                        ]);
+                    }
+                }
+
+                $currentLoopDate->addMonth();
+            }
+        });
     }
 }

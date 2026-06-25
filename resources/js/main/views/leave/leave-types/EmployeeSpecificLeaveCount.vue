@@ -10,6 +10,15 @@
         @close="onClose"
     >
         <a-form layout="vertical">
+            <a-row :gutter="16" style="margin-bottom: 8px; font-weight: 600;" v-if="formFields && formFields.length > 0">
+                <a-col :xs="6" :sm="6" :md="11" :lg="11">
+                    {{ $t('leave_type.user_id') }}
+                </a-col>
+                <a-col :xs="6" :sm="6" :md="11" :lg="11">
+                    {{ isMonthlyLeaveType ? $t('leave_type.expiry_cycle') : $t('leave_type.total_leaves') }}
+                </a-col>
+            </a-row>
+
             <template v-if="formFields && formFields.length > 0">
                 <a-row
                     v-for="(formField, index) in formFields"
@@ -79,16 +88,18 @@
                             :help="
                                 inputErrors[index] &&
                                 inputErrors[index].total_leaves
-                                    ? $t('leave_type.counts_required')
+                                    ? (isMonthlyLeaveType ? $t('leave_type.expiry_cycle_required') : $t('leave_type.counts_required'))
                                     : ''
                             "
                         >
                             <a-input
                                 v-model:value="formField.total_leaves"
                                 :placeholder="
-                                    $t('common.placeholder_default_text', [
-                                        $t('leave_type.total_count'),
-                                    ])
+                                    isMonthlyLeaveType
+                                        ? $t('leave_type.expiry_cycle')
+                                        : $t('common.placeholder_default_text', [
+                                            $t('leave_type.total_count'),
+                                        ])
                                 "
                             />
                         </a-form-item>
@@ -140,17 +151,20 @@
 
 <script>
 import { defineComponent, ref, computed, watch, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import {
     PlusOutlined,
     LoadingOutlined,
     SaveOutlined,
     MinusCircleOutlined,
 } from "@ant-design/icons-vue";
+import { message } from "ant-design-vue";
 import apiAdmin from "../../../../common/composable/apiAdmin";
 import { some, cloneDeep } from "lodash-es";
 import UserListDisplay from "../../../../common/components/user/UserListDisplay.vue";
 
 export default defineComponent({
+    emits: ["close", "save"],
     props: [
         "formData",
         "data",
@@ -169,6 +183,7 @@ export default defineComponent({
     },
     setup(props, { emit }) {
         const { addEditRequestAdmin, loading, rules } = apiAdmin();
+        const { t } = useI18n();
         const allStaffMembers = ref([]);
         const staffMembersUrl = "users?limit=10000";
 
@@ -213,10 +228,24 @@ export default defineComponent({
                 removed_fields: removed.value,
             };
 
+            if (props.addEditType === "add") {
+                emit("save", newFormData);
+                emit("close");
+                return;
+            }
+
+            loading.value = true;
             axiosAdmin
                 .post("employee-specific-leave", newFormData)
                 .then((response) => {
                     emit("close");
+                })
+                .catch((err) => {
+                    const errorMsg = err?.data?.message || err?.message || t("leave_type.failed_to_save_counts");
+                    message.error(errorMsg);
+                })
+                .finally(() => {
+                    loading.value = false;
                 });
         };
 
@@ -267,7 +296,7 @@ export default defineComponent({
         watch(
             () => props.visible,
             (newVal) => {
-                if (newVal && props.addEditType === "edit") {
+                if (newVal) {
                     let dataArray = [];
                     if (
                         props.data &&
@@ -307,6 +336,10 @@ export default defineComponent({
             { immediate: true }
         );
 
+        const isMonthlyLeaveType = computed(() => {
+            return !!(props.formData?.is_monthly_leave || props.data?.is_monthly_leave);
+        });
+
         return {
             drawerWidth: window.innerWidth <= 991 ? "90%" : "45%",
             loading,
@@ -319,6 +352,7 @@ export default defineComponent({
             formFields,
             allStaffMembers,
             inputErrors,
+            isMonthlyLeaveType,
         };
     },
 });

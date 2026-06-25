@@ -119,6 +119,8 @@ class SelfCommonHrm
 
         // If user have shift then shift time will be return
         // Else company time will be return
+        $isRemote = $user && $user->shift ? $user->shift->is_remote : false;
+
         return [
             'clock_in_time' => $clockInTime,
             'clock_out_time' => $clockOutTime,
@@ -130,6 +132,7 @@ class SelfCommonHrm
             'actual_allowed_clock_in_time' => $actualAllowedClockIn,
             'actual_allowed_clock_out_time' => $actualAllowedClockOut,
             'is_next_day' => $user && $user->shift ? $user->shift->is_next_day : 0,
+            'is_remote' => $isRemote,
         ];
     }
 
@@ -443,7 +446,7 @@ class SelfCommonHrm
                                            
                                             $now = Carbon::now($company->timezone)->format('H:i:s');
                                             $start = Carbon::createFromFormat('H:i:s', $workDuration->start_time);
-                                            $duration = $this->getMinutesFromTimes($workDuration->start_time, $now);
+                                            $duration = self::getMinutesFromTimes($workDuration->start_time, $now);
                                             $workDuration->duration = $duration;
                                             $totalBreakTime += $duration;
                                         }
@@ -470,7 +473,7 @@ class SelfCommonHrm
 
                                              $now = Carbon::now($company->timezone)->format('H:i:s');
                                              $start = Carbon::createFromFormat('H:i:s', $workDuration->start_time);
-                                             $duration = $this->getMinutesFromTimes($workDuration->start_time, $now);
+                                             $duration = self::getMinutesFromTimes($workDuration->start_time, $now);
                                              $workDuration->duration = $duration;
                                             
                                          }

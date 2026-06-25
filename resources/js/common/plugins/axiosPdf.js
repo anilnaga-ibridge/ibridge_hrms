@@ -14,11 +14,25 @@ axiosPdf.defaults.headers.common['X-CSRF-TOKEN'] = document.head.querySelector('
 if (localStorage.getItem('auth_token')) {
     axiosPdf.defaults.headers.common['Authorization'] = 'Bearer ' + localStorage.getItem('auth_token');
 }
+// Helper: parse error message from response data (handles JSON and Blob types)
+async function parseErrorMessage(responseData) {
+    try {
+        if (responseData instanceof Blob) {
+            const text = await responseData.text();
+            const json = JSON.parse(text);
+            return json?.error?.message || json?.message || 'An error occurred';
+        }
+        return responseData?.error?.message || responseData?.message || 'An error occurred';
+    } catch (e) {
+        return 'An error occurred';
+    }
+}
+
 // Axios error listener
 axiosPdf.interceptors.response.use(function (response) {
     return response;
-}, function (error) {
-    const errorCode = error.response.status;
+}, async function (error) {
+    const errorCode = error.response?.status;
 
     if (errorCode === 401) {
         // If error 401 redirect to login
@@ -26,14 +40,8 @@ axiosPdf.interceptors.response.use(function (response) {
         delete window.axiosPdf.defaults.headers.common.Authorization;
         localStorage.removeItem('auth_token');
         localStorage.setItem('auth_user', null);
-    } else if (errorCode === 400) {
-        var errMessage = error.response.data.error.message;
-        message.error(errMessage);
-    } else if (errorCode === 403) {
-        var errMessage = error.response.data.error.message;
-        message.error(errMessage);
-    } else if (errorCode === 404) {
-        var errMessage = error.response.data.error.message;
+    } else if (errorCode === 400 || errorCode === 403 || errorCode === 404) {
+        const errMessage = await parseErrorMessage(error.response.data);
         message.error(errMessage);
     }
 

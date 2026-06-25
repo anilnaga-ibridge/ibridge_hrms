@@ -15,6 +15,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        $schedule->command('birthday:notify')->dailyAt('08:00');
+        $schedule->command('holiday:notify')->dailyAt('18:00');
+        $schedule->command('hrm:credit-monthly-leaves')->monthly();
+        $schedule->command('performance:calculate')->monthly();
+
         if (app_type() == 'saas') {
             $schedule->command(\App\SuperAdmin\Commands\UpdateLicenseExpiry::class)->daily();
             $schedule->command(\App\SuperAdmin\Commands\NotifyLicenseExpiryPre::class)->daily();

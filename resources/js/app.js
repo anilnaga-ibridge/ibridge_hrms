@@ -7,6 +7,7 @@ import "ant-design-vue/dist/reset.css";
 
 import { createApp, defineAsyncComponent } from "vue";
 import PerfectScrollbar from "vue3-perfect-scrollbar";
+import VueApexCharts from "vue3-apexcharts";
 import App from "./main/views/App.vue";
 import routes from "./main/router";
 import { setupI18n, loadLocaleMessages } from "./common/i18n";
@@ -57,12 +58,14 @@ async function bootstrap() {
         legacy: false,
         globalInjection: true,
         locale: authStore.lang,
+        fallbackLocale: 'en',
         warnHtmlMessage: false,
     });
     await loadLocaleMessages(i18n, authStore.lang);
 
     app.use(i18n);
     app.use(PerfectScrollbar);
+    app.use(VueApexCharts);
 
     const allModules = window.config.installed_modules;
     const allModulesPromise = [];

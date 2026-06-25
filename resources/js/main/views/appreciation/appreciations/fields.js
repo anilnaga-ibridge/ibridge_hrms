@@ -4,7 +4,7 @@ import common from "@/common/composable/common";
 
 const fields = () => {
     const url =
-        "appreciations?fields=id,xid,user_id,profile_image,profile_image_url,account_id,x_account_id,letterhead_template_id,x_letterhead_template_id,x_user_id,user{id,xid,name,profile_image,profile_image_url},award_id,x_award_id,award{name},date,description,price_amount,price_given,user:designation{name},user:location{name},account{account_number},letterHeadTemplate{title,description},generates_id,x_generates_id,generate{description,title,left_space,right_space,top_space,bottom_space}";
+        "appreciations?fields=id,xid,user_id,profile_image,profile_image_url,account_id,x_account_id,letterhead_template_id,x_letterhead_template_id,x_user_id,user{id,xid,name,profile_image,profile_image_url},award_id,x_award_id,award{name},date,description,price_amount,price_given,user:designation{name},user:location{name},account{account_number},letterHeadTemplate{title,description},generates_id,x_generates_id,generate{xid,description,title,left_space,right_space,top_space,bottom_space}";
     const addEditUrl = "appreciations";
     const { t } = useI18n();
     const hashableColumns = [

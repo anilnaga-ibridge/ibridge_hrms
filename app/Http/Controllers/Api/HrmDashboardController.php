@@ -57,9 +57,27 @@ class HrmDashboardController extends ApiBaseController
 
         $shiftClockInTime = CommonHrm::getUserClockingTime($user->id);
 
-        if ($shiftClockInTime['allowed_ip_address'] && count($shiftClockInTime['allowed_ip_address']) > 0) {
-            if (in_array($ipAddress, $shiftClockInTime['allowed_ip_address']) == false) {
-                throw new ApiException("You can not mark attendance from this IP address");
+        if (!$shiftClockInTime['is_remote']) {
+            $locationCheckPassed = false;
+
+            if ($company->office_latitude && $company->office_longitude && $request->latitude) {
+                $distance = CommonHrm::calculateDistance(
+                    $company->office_latitude, $company->office_longitude,
+                    $request->latitude, $request->longitude
+                );
+                $radius = $company->office_location_radius ?: 100;
+
+                if ($distance <= $radius) {
+                    $locationCheckPassed = true;
+                } else {
+                    throw new ApiException("You are not within the allowed office location");
+                }
+            }
+
+            if (!$locationCheckPassed && $shiftClockInTime['allowed_ip_address'] && count($shiftClockInTime['allowed_ip_address']) > 0) {
+                if (in_array($ipAddress, $shiftClockInTime['allowed_ip_address']) == false) {
+                    throw new ApiException("You can not mark attendance from this IP address");
+                }
             }
         }
 
@@ -422,6 +440,9 @@ class HrmDashboardController extends ApiBaseController
         $company->employee_id_start = $request->employee_id_start;
         $company->employee_id_digits = $request->employee_id_digits;
         $company->capture_location = $request->capture_location;
+        $company->office_latitude = $request->office_latitude;
+        $company->office_longitude = $request->office_longitude;
+        $company->office_location_radius = $request->office_location_radius;
         $company->save();
 
         // Reseting the company settings

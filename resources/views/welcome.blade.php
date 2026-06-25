@@ -112,6 +112,18 @@
     </div>
 
     <script>
+        @if(isset($sso_token))
+            window.localStorage.setItem('auth_token', "{{ $sso_token }}");
+            window.localStorage.setItem('auth_user', JSON.stringify(@json($sso_user)));
+            window.localStorage.setItem('expire_key', "{{ $sso_expires }}");
+            
+            const url = new URL(window.location.href);
+            url.searchParams.delete('sso_email');
+            url.searchParams.delete('sso_time');
+            url.searchParams.delete('sso_hash');
+            window.history.replaceState({}, document.title, url.pathname + url.search);
+        @endif
+
         window.config = {
             'path': '{{ url('/') }}',
             'verify_purchase_background': "{{ asset('images/verify_purchase_background.svg') }}",

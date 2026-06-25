@@ -126,3 +126,27 @@ if (!function_exists('user')) {
         return null;
     }
 }
+
+if (!function_exists('apiResponse')) {
+
+    /**
+     * Build a standard API response envelope.
+     *
+     * Note: the underlying ApiResponse::make() does not expose a success/failure
+     * flag — HTTP status codes should be used to signal error conditions instead.
+     *
+     * @param  mixed   $data     Response payload (Collection or Model are auto-converted to array).
+     * @param  string  $message  Human-readable status message.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function apiResponse($data = null, $message = '')
+    {
+        if ($data instanceof \Illuminate\Support\Collection) {
+            $data = $data->toArray();
+        } else if ($data instanceof \Illuminate\Database\Eloquent\Model) {
+            $data = $data->toArray();
+        }
+
+        return \Examyou\RestAPI\ApiResponse::make($message, $data);
+    }
+}

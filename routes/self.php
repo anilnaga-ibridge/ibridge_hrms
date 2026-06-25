@@ -21,6 +21,8 @@ ApiRoute::group(['prefix' => 'self', 'namespace' => 'App\Http\Controllers\Api\Se
     ApiRoute::get('unpaid-leaves', ['as' => 'api.self.unpaid-leaves', 'uses' => 'LeaveController@unpaidLeaves']);
     ApiRoute::get('paid-leaves', ['as' => 'api.self.paid-leaves', 'uses' => 'LeaveController@paidLeaves']);
     ApiRoute::get('filter-leaves', ['as' => 'api.leaves.filter-leaves', 'uses' => 'LeaveController@filterLeaves']);
+    ApiRoute::get('employee-monthly-leaves/summary', ['as' => 'api.self.employee-monthly-leaves.summary', 'uses' => '\App\Http\Controllers\Api\EmployeeMonthlyLeaveController@summary']);
+    ApiRoute::get('employee-monthly-leaves', ['as' => 'api.self.employee-monthly-leaves', 'uses' => '\App\Http\Controllers\Api\EmployeeMonthlyLeaveController@index']);
 
 
     ApiRoute::get('increments-promotions', ['as' => 'api.increments-promotions.index', 'uses' => 'IncrementPromotionController@index']);

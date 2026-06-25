@@ -8,6 +8,7 @@
                     borderRadius: '10px',
                     maxWidth: '300px',
                     width: '100%',
+                    color: 'inherit',
                 }"
             >
                 <div class="profile-image">
@@ -22,7 +23,7 @@
                         :alt="user.name"
                     />
                 </div>
-                <div class="profile-info">
+                <div class="profile-info" style="color: inherit;">
                     <span
                         :style="{
                             marginTop: '0px',
@@ -30,6 +31,7 @@
                             paddingTop: '0px',
                             paddingBottom: '0px',
                             fontSize: '14px',
+                            color: 'inherit',
                         }"
                     >
                         {{ user.name }}

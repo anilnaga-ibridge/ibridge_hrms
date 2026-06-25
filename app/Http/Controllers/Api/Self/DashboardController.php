@@ -90,9 +90,28 @@ class DashboardController extends ApiBaseController
         } else if ($request->has('type') && $request->type == "anniversary_data") {
             $data = ['getUpcomingAnniversaries' => $this->anniversaries()];
         } else {
+            $today = Carbon::today();
+            $todayBirthdays = StaffMember::where('status', 'active')
+                ->with('designation')
+                ->whereRaw("DATE_FORMAT(dob, '%m-%d') = ?", [$today->format('m-d')])
+                ->get()
+                ->map(function ($u) use ($today) {
+                    $dob = Carbon::parse($u->dob);
+                    $age = $today->year - $dob->year;
+                    return [
+                        'name'      => $u->name,
+                        'designation' => $u->designation->name ?? null,
+                        'age'       => $age,
+                        'image_url' => $u->profile_image_url,
+                        'xid'       => $u->xid,
+                    ];
+                });
+
             $data = [
                 'appreciations' => $appreciations,
+                'recentAppreciations' => $this->recentAppreciations(),
                 'birthdays' => $birthdays,
+                'todayBirthdays' => $todayBirthdays,
                 'holidays' => $holidays,
                 'news' => $news,
                 'surveies' => $surveies,
@@ -370,5 +389,34 @@ class DashboardController extends ApiBaseController
         }
 
         return $query->orderBy('date', 'desc')->get();
+    }
+
+    public function recentAppreciations()
+    {
+        $user = user();
+
+        $appreciations = Appreciation::with(['user', 'award', 'generate'])
+            ->where('user_id', '!=', $user->id)
+            ->orderBy('date', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function ($appreciation) {
+                $certificateHtml = '';
+                if ($appreciation->generate) {
+                    $certificateHtml = $appreciation->generate->description;
+                }
+
+                return [
+                    'xid' => $appreciation->xid,
+                    'date' => $appreciation->date ? $appreciation->date->format('Y-m-d') : '',
+                    'user_name' => $appreciation->user ? $appreciation->user->name : '',
+                    'user_image' => $appreciation->user ? $appreciation->user->profile_image_url : '',
+                    'award_name' => $appreciation->award ? $appreciation->award->name : '',
+                    'certificate_html' => $certificateHtml,
+                    'generate_xid' => $appreciation->generate ? $appreciation->generate->xid : '',
+                ];
+            });
+
+        return $appreciations;
     }
 }

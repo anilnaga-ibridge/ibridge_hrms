@@ -10,6 +10,7 @@
                 <img
                     style="width: 150px; display: inline-flex"
                     :src="appSetting.light_logo_url"
+                    :alt="appSetting.name ? appSetting.name + ' Logo' : 'Company Logo'"
                 />
             </template>
             <template #extra>

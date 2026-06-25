@@ -82,6 +82,10 @@ class Appreciation extends BaseModel
     {
         $appreciationImagePath = Common::getFolderPath('appreciationImagePath');
 
-        return $this->profile_image == null ? asset('images/appreciation.png') : Common::getFileUrl($appreciationImagePath, $this->profile_image);
+        if ($this->profile_image == null) {
+            return $this->user ? $this->user->profile_image_url : asset('images/appreciation.png');
+        }
+
+        return Common::getFileUrl($appreciationImagePath, $this->profile_image);
     }
 }

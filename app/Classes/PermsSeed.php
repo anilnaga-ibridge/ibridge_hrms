@@ -843,6 +843,45 @@ class PermsSeed
             'display_name' => 'Shift Delete'
         ],
 
+        // Shift Rosters
+        'shift_rosters_view' => [
+            'name' => 'shift_rosters_view',
+            'display_name' => 'Shift Roster View'
+        ],
+        'shift_rosters_create' => [
+            'name' => 'shift_rosters_create',
+            'display_name' => 'Shift Roster Create'
+        ],
+        'shift_rosters_edit' => [
+            'name' => 'shift_rosters_edit',
+            'display_name' => 'Shift Roster Edit'
+        ],
+        'shift_rosters_delete' => [
+            'name' => 'shift_rosters_delete',
+            'display_name' => 'Shift Roster Delete'
+        ],
+
+        // Rotational Weekoff
+        'rotational_teams_view' => [
+            'name' => 'rotational_teams_view',
+            'display_name' => 'Rotational Team View'
+        ],
+        'rotational_teams_create' => [
+            'name' => 'rotational_teams_create',
+            'display_name' => 'Rotational Team Create'
+        ],
+        'rotational_teams_edit' => [
+            'name' => 'rotational_teams_edit',
+            'display_name' => 'Rotational Team Edit'
+        ],
+        'rotational_teams_delete' => [
+            'name' => 'rotational_teams_delete',
+            'display_name' => 'Rotational Team Delete'
+        ],
+        'performance_view' => [
+            'name' => 'performance_view',
+            'display_name' => 'Performance View'
+        ],
 
     ];
 
