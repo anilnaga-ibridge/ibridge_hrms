@@ -52,6 +52,8 @@ ApiRoute::group(['prefix' => 'self', 'namespace' => 'App\Http\Controllers\Api\Se
 
     ApiRoute::resource('projects', 'ProjectController', ['as' => 'api', 'only' => ['index', 'store', 'update', 'destroy']]);
     ApiRoute::resource('tasks', 'TaskController', ['as' => 'api', 'only' => ['index', 'store', 'update', 'destroy']]);
+    ApiRoute::resource('task-checklist-items', 'TaskChecklistItemController', ['as' => 'api', 'only' => ['index', 'store', 'update', 'destroy']]);
+    ApiRoute::resource('task-comments', 'TaskCommentController', ['as' => 'api', 'only' => ['index', 'store', 'update', 'destroy']]);
 
     ApiRoute::resource('complaints', 'ComplaintController', ['as' => 'api']);
     ApiRoute::resource('leaves', 'LeaveController', ['as' => 'api']);

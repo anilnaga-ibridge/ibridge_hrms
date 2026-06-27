@@ -26,6 +26,7 @@ import LetterHeadRoutes from "./letterHead";
 import Reports from "./reports";
 import ProjectRoutes from "./projects";
 import TaskRoutes from "./tasks";
+import EnterpriseTasksRoutes from "./enterpriseTasks";
 import CustomerRoutes from "./customers";
 import { checkUserPermission } from "../../common/scripts/functions";
 
@@ -65,6 +66,7 @@ const router = createRouter({
         ...PerformanceRoutes,
         ...ProjectRoutes,
         ...TaskRoutes,
+        ...EnterpriseTasksRoutes,
         ...CustomerRoutes,
         ...RotationalWeekoffRoutes,
         ...AppreciationsRoutes,

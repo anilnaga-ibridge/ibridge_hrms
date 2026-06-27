@@ -1,0 +1,51 @@
+<?php
+
+namespace App\Models\EnterpriseTasks;
+
+use App\Models\BaseModel;
+use App\Models\User;
+use App\Casts\Hash;
+
+class TimeLog extends BaseModel
+{
+    protected $table = 'ep_time_logs';
+
+    protected $guarded = ['id', 'created_at', 'updated_at'];
+
+    protected $hidden = ['id', 'task_id', 'user_id'];
+
+    protected $appends = ['xid', 'x_task_id', 'x_user_id', 'user'];
+
+    protected $hashableGetterFunctions = [
+        'getXTaskIdAttribute' => 'task_id',
+        'getXUserIdAttribute' => 'user_id',
+    ];
+
+    protected $casts = [
+        'task_id' => Hash::class . ':hash',
+        'user_id' => Hash::class . ':hash',
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+        'duration_minutes' => 'integer',
+    ];
+
+    public function task()
+    {
+        return $this->belongsTo(Task::class, 'task_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function getUserAttribute()
+    {
+        $u = $this->getRelationValue('user');
+        return $u ? [
+            'xid' => $u->xid,
+            'name' => $u->name,
+            'profile_image_url' => $u->profile_image_url
+        ] : null;
+    }
+}

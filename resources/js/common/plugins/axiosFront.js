@@ -27,13 +27,13 @@ axiosFront.interceptors.response.use(function (response) {
         localStorage.removeItem('front_auth_token');
         localStorage.setItem('front_auth_user', null);
     } else if (errorCode === 400) {
-        var errMessage = error.response.data.error.message;
+        var errMessage = error.response?.data?.error?.message || error.response?.data?.message || 'Bad Request';
         message.error(errMessage);
     } else if (errorCode === 403) {
-        var errMessage = error.response.data.error.message;
+        var errMessage = error.response?.data?.error?.message || error.response?.data?.message || 'Forbidden';
         message.error(errMessage);
     } else if (errorCode === 404) {
-        var errMessage = error.response.data.error.message;
+        var errMessage = error.response?.data?.error?.message || error.response?.data?.message || 'Not Found';
         message.error(errMessage);
     }
 

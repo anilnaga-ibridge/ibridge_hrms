@@ -11,6 +11,7 @@ import VueApexCharts from "vue3-apexcharts";
 import App from "./main/views/App.vue";
 import routes from "./main/router";
 import { setupI18n, loadLocaleMessages } from "./common/i18n";
+import { syncManager } from "./offline/syncManager";
 
 import "vue3-perfect-scrollbar/dist/vue3-perfect-scrollbar.css";
 
@@ -29,6 +30,12 @@ import { createPinia } from "pinia";
 import { useAuthStore } from "./main/store/authStore";
 
 async function bootstrap() {
+
+    const origConsoleError = console.error;
+    console.error = (...args) => {
+        if (args[0] && args[0].type === 16) return;
+        origConsoleError(...args);
+    };
 
     const app = createApp(App);
     app.use(createPinia());
@@ -100,6 +107,19 @@ async function bootstrap() {
 
     routes.isReady().then(() => {
         app.mount("#app");
+        
+        // PWA Service Worker & Offline Sync
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register(window.config.path + '/sw.js')
+                .then(reg => {
+                    console.log('[PWA] Service Worker registered with scope:', reg.scope);
+                })
+                .catch(err => {
+                    console.error('[PWA] Service Worker registration failed:', err);
+                });
+            
+            syncManager.init();
+        }
     });
 }
 

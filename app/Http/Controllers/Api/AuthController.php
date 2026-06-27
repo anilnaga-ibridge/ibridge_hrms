@@ -23,6 +23,7 @@ use App\Models\IncrementPromotion;
 use App\Models\Lang;
 use App\Models\Settings;
 use App\Models\StaffMember;
+use App\Scopes\CompanyScope;
 use Carbon\Carbon;
 use Examyou\RestAPI\ApiResponse;
 use Examyou\RestAPI\Exceptions\ApiException;
@@ -888,5 +889,17 @@ class AuthController extends ApiBaseController
             });
 
         return $appreciations;
+    }
+
+    public function toGetAllEmployeeProfile()
+    {
+        $user = auth('api')->user();
+        $employees = StaffMember::withoutGlobalScope(CompanyScope::class)
+            ->where('company_id', $user->company_id)
+            ->where('id', '!=', $user->id)
+            ->select('id', 'name', 'email', 'profile_image')
+            ->get()
+            ->toArray();
+        return response()->json($employees);
     }
 }

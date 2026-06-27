@@ -110,7 +110,11 @@ use App\Observers\SalaryGroupUserObserver;
 use App\Observers\Self\SelfComplaintObserver;
 use App\Observers\UserDocumentObserver;
 use App\Observers\TaskObserver;
+use App\Observers\TaskChecklistItemObserver;
+use App\Observers\TaskCommentObserver;
 use App\Models\Task;
+use App\Models\TaskChecklistItem;
+use App\Models\TaskComment;
 use App\Observers\ProjectObserver;
 use App\Models\Project;
 use App\Observers\CustomerObserver;
@@ -124,7 +128,65 @@ class EventServiceProvider extends ServiceProvider
      *
      * @var array
      */
-    protected $listen = [];
+    protected $listen = [
+        \App\Events\EnterpriseTasks\TaskCreated::class => [
+            \App\Listeners\EnterpriseTasks\CreateActivityLog::class,
+            \App\Listeners\EnterpriseTasks\TriggerAutomations::class,
+            \App\Listeners\EnterpriseTasks\SendNotifications::class,
+            \App\Listeners\EnterpriseTasks\UpdateMetrics::class,
+            \App\Listeners\EnterpriseTasks\UpdateProductivity::class,
+        ],
+        \App\Events\EnterpriseTasks\TaskUpdated::class => [
+            \App\Listeners\EnterpriseTasks\CreateActivityLog::class,
+            \App\Listeners\EnterpriseTasks\TriggerAutomations::class,
+            \App\Listeners\EnterpriseTasks\SendNotifications::class,
+            \App\Listeners\EnterpriseTasks\UpdateMetrics::class,
+            \App\Listeners\EnterpriseTasks\UpdateProductivity::class,
+        ],
+        \App\Events\EnterpriseTasks\TaskAssigned::class => [
+            \App\Listeners\EnterpriseTasks\CreateActivityLog::class,
+            \App\Listeners\EnterpriseTasks\SendNotifications::class,
+            \App\Listeners\EnterpriseTasks\SendTaskAssignedNotification::class,
+        ],
+        \App\Events\EnterpriseTasks\TaskStatusChanged::class => [
+            \App\Listeners\EnterpriseTasks\CreateActivityLog::class,
+            \App\Listeners\EnterpriseTasks\TriggerAutomations::class,
+            \App\Listeners\EnterpriseTasks\SendNotifications::class,
+            \App\Listeners\EnterpriseTasks\SendOverdueNotification::class,
+            \App\Listeners\EnterpriseTasks\UpdateMetrics::class,
+            \App\Listeners\EnterpriseTasks\UpdateProductivity::class,
+        ],
+        \App\Events\EnterpriseTasks\TaskCompleted::class => [
+            \App\Listeners\EnterpriseTasks\CreateActivityLog::class,
+            \App\Listeners\EnterpriseTasks\TriggerAutomations::class,
+            \App\Listeners\EnterpriseTasks\SendNotifications::class,
+            \App\Listeners\EnterpriseTasks\UpdateMetrics::class,
+            \App\Listeners\EnterpriseTasks\UpdateProductivity::class,
+        ],
+        \App\Events\EnterpriseTasks\TaskDeleted::class => [
+            \App\Listeners\EnterpriseTasks\CreateActivityLog::class,
+            \App\Listeners\EnterpriseTasks\UpdateMetrics::class,
+            \App\Listeners\EnterpriseTasks\UpdateProductivity::class,
+        ],
+        \App\Events\EnterpriseTasks\TaskCommentAdded::class => [
+            \App\Listeners\EnterpriseTasks\CreateActivityLog::class,
+            \App\Listeners\EnterpriseTasks\SendNotifications::class,
+            \App\Listeners\EnterpriseTasks\SendTaskCommentNotification::class,
+            \App\Listeners\EnterpriseTasks\UpdateMetrics::class,
+            \App\Listeners\EnterpriseTasks\UpdateProductivity::class,
+        ],
+        \App\Events\EnterpriseTasks\TaskAttachmentUploaded::class => [
+            \App\Listeners\EnterpriseTasks\CreateActivityLog::class,
+            \App\Listeners\EnterpriseTasks\SendNotifications::class,
+            \App\Listeners\EnterpriseTasks\UpdateMetrics::class,
+        ],
+        \App\Events\EnterpriseTasks\ProjectCompleted::class => [
+            \App\Listeners\EnterpriseTasks\CreateActivityLog::class,
+            \App\Listeners\EnterpriseTasks\TriggerAutomations::class,
+            \App\Listeners\EnterpriseTasks\SendNotifications::class,
+            \App\Listeners\EnterpriseTasks\UpdateMetrics::class,
+        ],
+    ];
 
     /**
      * Register any events for your application.
@@ -194,6 +256,8 @@ class EventServiceProvider extends ServiceProvider
 
             // Task Observer
             Task::observe(TaskObserver::class);
+            TaskChecklistItem::observe(TaskChecklistItemObserver::class);
+            TaskComment::observe(TaskCommentObserver::class);
 
             // Project Observer
             Project::observe(ProjectObserver::class);

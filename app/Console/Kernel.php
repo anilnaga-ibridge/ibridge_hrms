@@ -24,6 +24,16 @@ class Kernel extends ConsoleKernel
             $schedule->command(\App\SuperAdmin\Commands\UpdateLicenseExpiry::class)->daily();
             $schedule->command(\App\SuperAdmin\Commands\NotifyLicenseExpiryPre::class)->daily();
         }
+
+        // Enterprise Tasks Scheduled Commands
+        $schedule->command('enterprise:check-overdue')->daily();
+        $schedule->command('enterprise:reminders')->everyMinute();
+        $schedule->command('enterprise:recurring-tasks')->daily();
+        $schedule->command('enterprise:daily-summary')->dailyAt('18:00');
+        $schedule->command('enterprise:weekly-summary')->weeklyOn(5, '17:00');
+        $schedule->command('enterprise:archive-tasks')->weekly();
+        $schedule->command('enterprise:recalculate-metrics')->hourly();
+        $schedule->command('enterprise:recalculate-productivity')->monthly();
     }
 
     /**

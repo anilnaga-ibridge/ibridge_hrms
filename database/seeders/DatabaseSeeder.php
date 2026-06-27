@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             $this->call(LeaveSeeder::class);
             $this->call(NewsSeeder::class);
             $this->call(PayrollSeeder::class);
+            $this->call(EnterpriseTaskTemplatesSeeder::class);
 
             // Creating SuperAdmin
             if (app_type() == 'saas') {

@@ -54,8 +54,8 @@ export default {
 
 <style scoped>
 .leave-policy-card {
-    background: #3e6f7b;
-    color: white;
+    background: transparent;
+    color: #1F2937;
     padding: 24px;
     max-width: 100%;
 }
@@ -82,10 +82,12 @@ export default {
 }
 
 .view-button {
-    background: white;
-    color: black;
+    background: #EEF2F7;
+    color: #1F2937;
     font-weight: bold;
-    border-radius: 4px;
+    border-radius: 8px;
     padding: 4px 10px;
+    border: none;
+    box-shadow: 3px 3px 6px rgba(163,177,198,0.4), -3px -3px 6px rgba(255,255,255,0.9);
 }
 </style>

@@ -58,8 +58,8 @@ export default defineComponent({
 
 <style scoped>
 .birthday-card {
-    background: #1e242b;
-    color: white;
+    background: transparent;
+    color: #1F2937;
     text-align: center;
     max-width: 100%;
     padding: 16px;
@@ -83,18 +83,18 @@ export default defineComponent({
     font-size: 16px;
     font-weight: bold;
     margin-top: 10px;
-    color: white;
+    color: #1F2937;
 }
 
 .member-role {
     font-size: 14px;
-    color: #b0b0b0;
+    color: #6B7280;
     margin-bottom: 12px;
 }
 
 .wish-button {
-    background: #ff7733;
-    border-color: #ff7733;
+    background: #6366F1;
+    border-color: #6366F1;
     color: white;
     font-weight: bold;
     border-radius: 6px;
@@ -102,8 +102,8 @@ export default defineComponent({
 }
 
 .wish-button:hover {
-    background: #ff9555;
-    border-color: #ff9555;
+    background: #8B5CF6;
+    border-color: #8B5CF6;
 }
 
 .carousel-slide {
@@ -115,12 +115,12 @@ export default defineComponent({
 
 .custom-slick-arrow {
     font-size: 24px;
-    color: white;
+    color: #6B7280;
     cursor: pointer;
     transition: color 0.3s;
 }
 
 .custom-slick-arrow:hover {
-    color: #ff7733;
+    color: #6366F1;
 }
 </style>

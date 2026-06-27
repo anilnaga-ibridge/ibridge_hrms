@@ -128,6 +128,8 @@ ApiRoute::group(['namespace' => 'App\Http\Controllers\Api'], function () {
         ApiRoute::resource('projects', 'ProjectController', $options);
         ApiRoute::resource('customers', 'CustomerController', $options);
         ApiRoute::resource('tasks', 'TaskController', $options);
+        ApiRoute::resource('task-checklist-items', 'TaskChecklistItemController', $options);
+        ApiRoute::resource('task-comments', 'TaskCommentController', $options);
         ApiRoute::resource('designations', 'DesignationController', $options);
         ApiRoute::resource('leave-types', 'LeaveTypeController', $options);
         ApiRoute::resource('awards', 'AwardController', $options);

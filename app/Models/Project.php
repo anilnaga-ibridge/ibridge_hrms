@@ -12,7 +12,7 @@ class Project extends BaseModel
 {
     protected $table = 'projects';
 
-    protected $default = ['xid', 'name', 'status', 'start_date', 'deadline', 'description', 'members', 'member_details', 'customer', 'customer_id', 'calculate_progress', 'progress', 'billing_type', 'total_rate', 'estimated_hours', 'tags', 'send_email'];
+    protected $default = ['xid', 'name', 'status', 'start_date', 'deadline', 'description', 'members', 'member_details', 'customer', 'customer_id', 'calculate_progress', 'progress', 'billing_type', 'total_rate', 'estimated_hours', 'tags', 'send_email', 'is_system', 'is_inbox'];
 
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
@@ -41,6 +41,8 @@ class Project extends BaseModel
         'estimated_hours' => 'double',
         'send_email' => 'boolean',
         'tags' => 'array',
+        'is_system' => 'boolean',
+        'is_inbox' => 'boolean',
     ];
 
     protected static function boot()
@@ -98,5 +100,15 @@ class Project extends BaseModel
             return $customer ? $customer->name : $value;
         }
         return $value;
+    }
+
+    public function sections()
+    {
+        return $this->hasMany(\App\Models\EnterpriseTasks\ProjectSection::class, 'project_id')->orderBy('sort_order', 'asc');
+    }
+
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

@@ -23,50 +23,65 @@
         </template>
     </AdminPageHeader>
 
-    <div class="stats-cards-container" style="margin: 0 16px 24px 16px;">
-        <a-row :gutter="16">
-            <a-col :xs="24" :sm="12" :md="4" :lg="4" style="flex: 1 1 20%;">
-                <a-card :bordered="false" class="stats-card not-started-tasks">
-                    <div class="card-inner">
+    <div class="stats-cards-container">
+        <a-row :gutter="[16, 16]">
+            <a-col :xs="24" :sm="12" :md="4" :lg="4">
+                <a-card :bordered="false" class="stats-card not-started-card">
+                    <div class="card-body">
+                        <div class="card-icon-row">
+                            <div class="icon-circle"><FieldTimeOutlined /></div>
+                        </div>
                         <div class="card-value">{{ stats.notStarted }}</div>
                         <div class="card-label">Not Started</div>
-                        <div class="card-sub-label">My Tasks: {{ stats.myNotStarted }}</div>
+                        <div class="card-meta"><UserOutlined class="sub-icon" /> {{ stats.myNotStarted }} assigned to me</div>
                     </div>
                 </a-card>
             </a-col>
-            <a-col :xs="24" :sm="12" :md="4" :lg="4" style="flex: 1 1 20%;">
-                <a-card :bordered="false" class="stats-card in-progress-tasks">
-                    <div class="card-inner">
+            <a-col :xs="24" :sm="12" :md="4" :lg="4">
+                <a-card :bordered="false" class="stats-card in-progress-card">
+                    <div class="card-body">
+                        <div class="card-icon-row">
+                            <div class="icon-circle"><SyncOutlined /></div>
+                        </div>
                         <div class="card-value">{{ stats.inProgress }}</div>
                         <div class="card-label">In Progress</div>
-                        <div class="card-sub-label">My Tasks: {{ stats.myInProgress }}</div>
+                        <div class="card-meta"><UserOutlined class="sub-icon" /> {{ stats.myInProgress }} assigned to me</div>
                     </div>
                 </a-card>
             </a-col>
-            <a-col :xs="24" :sm="12" :md="4" :lg="4" style="flex: 1 1 20%;">
-                <a-card :bordered="false" class="stats-card testing-tasks">
-                    <div class="card-inner">
+            <a-col :xs="24" :sm="12" :md="4" :lg="4">
+                <a-card :bordered="false" class="stats-card testing-card">
+                    <div class="card-body">
+                        <div class="card-icon-row">
+                            <div class="icon-circle"><ExperimentOutlined /></div>
+                        </div>
                         <div class="card-value">{{ stats.testing }}</div>
                         <div class="card-label">Testing</div>
-                        <div class="card-sub-label">My Tasks: {{ stats.myTesting }}</div>
+                        <div class="card-meta"><UserOutlined class="sub-icon" /> {{ stats.myTesting }} assigned to me</div>
                     </div>
                 </a-card>
             </a-col>
-            <a-col :xs="24" :sm="12" :md="4" :lg="4" style="flex: 1 1 20%;">
-                <a-card :bordered="false" class="stats-card awaiting-feedback-tasks">
-                    <div class="card-inner">
+            <a-col :xs="24" :sm="12" :md="4" :lg="4">
+                <a-card :bordered="false" class="stats-card awaiting-feedback-card">
+                    <div class="card-body">
+                        <div class="card-icon-row">
+                            <div class="icon-circle"><MessageOutlined /></div>
+                        </div>
                         <div class="card-value">{{ stats.awaitingFeedback }}</div>
                         <div class="card-label">Awaiting Feedback</div>
-                        <div class="card-sub-label">My Tasks: {{ stats.myAwaitingFeedback }}</div>
+                        <div class="card-meta"><UserOutlined class="sub-icon" /> {{ stats.myAwaitingFeedback }} assigned to me</div>
                     </div>
                 </a-card>
             </a-col>
-            <a-col :xs="24" :sm="12" :md="4" :lg="4" style="flex: 1 1 20%;">
-                <a-card :bordered="false" class="stats-card complete-tasks">
-                    <div class="card-inner">
+            <a-col :xs="24" :sm="12" :md="4" :lg="4">
+                <a-card :bordered="false" class="stats-card complete-card">
+                    <div class="card-body">
+                        <div class="card-icon-row">
+                            <div class="icon-circle"><CheckCircleOutlined /></div>
+                        </div>
                         <div class="card-value">{{ stats.complete }}</div>
                         <div class="card-label">Complete</div>
-                        <div class="card-sub-label">My Tasks: {{ stats.myComplete }}</div>
+                        <div class="card-meta"><UserOutlined class="sub-icon" /> {{ stats.myComplete }} assigned to me</div>
                     </div>
                 </a-card>
             </a-col>
@@ -163,56 +178,55 @@
                 >
                     <div
                         class="kanban-column"
-                        :style="{ borderTop: '4px solid ' + col.color }"
                         @dragover.prevent
                         @drop="onDrop($event, col.status)"
                     >
                         <div class="kanban-column-header">
-                            <span class="column-title">{{ col.title }}</span>
-                            <a-tag :color="col.color" class="column-count">
+                            <div class="column-title-row">
+                                <span class="column-indicator" :style="{ background: col.color }"></span>
+                                <span class="column-title">{{ col.title }}</span>
+                            </div>
+                            <span class="column-count" :style="{ color: col.color, background: col.color + '18' }">
                                 {{ getColumnTasks(col.status).length }}
-                            </a-tag>
+                            </span>
                         </div>
                         <div class="kanban-cards-list">
                             <div
                                 v-for="task in getColumnTasks(col.status)"
                                 :key="task.xid"
                                 class="kanban-card"
+                                :style="{ borderLeft: '3px solid ' + col.color }"
                                 draggable="true"
                                 @dragstart="onDragStart($event, task)"
                                 @click="editItem(task)"
                             >
-                                <div class="card-project-name">
+                                <div class="kcard-project-name">
                                     {{ task.project ? task.project.name : 'No Project' }}
                                 </div>
-                                <div class="card-task-name">{{ task.name }}</div>
-                                <div style="margin-bottom: 8px;">
-                                    <a-tag v-if="task.is_public" color="blue" style="font-size: 10px; padding: 0 4px;">Public</a-tag>
-                                    <a-tag v-if="task.is_billable" color="gold" style="font-size: 10px; padding: 0 4px;">Billable</a-tag>
-                                    <a-tag v-for="tag in task.tags" :key="tag" color="purple" style="font-size: 10px; padding: 0 4px;">{{ tag }}</a-tag>
+                                <div class="kcard-task-name">{{ task.name }}</div>
+                                <div class="kcard-tags" v-if="task.is_public || task.is_billable || (task.tags && task.tags.length)">
+                                    <a-tag v-if="task.is_public" color="blue" class="kcard-tag">Public</a-tag>
+                                    <a-tag v-if="task.is_billable" color="gold" class="kcard-tag">Billable</a-tag>
+                                    <a-tag v-for="tag in task.tags" :key="tag" color="purple" class="kcard-tag">{{ tag }}</a-tag>
                                 </div>
-                                <div class="card-meta">
-                                    <span class="priority-indicator">
-                                        <a-tag :color="getPriorityColor(task.priority)">
-                                            {{ task.priority.toUpperCase() }}
-                                        </a-tag>
+                                <div class="kcard-footer">
+                                    <span class="kcard-priority">
+                                        <span class="priority-dot" :style="{ background: getPriorityColorHex(task.priority) }"></span>
+                                        {{ task.priority.toUpperCase() }}
                                     </span>
-                                    <div class="card-footer">
-                                        <div class="due-date" :class="{ 'overdue': isOverdue(task.due_date) }">
-                                            <CalendarOutlined style="margin-right: 4px;" />
-                                            {{ task.due_date ? task.due_date.substring(0, 10) : 'No Due Date' }}
-                                        </div>
-                                        <div class="card-assignees">
-                                            <a-avatar-group :max-count="2" size="small">
-                                                <a-tooltip
-                                                    v-for="assignee in task.assignee_details"
-                                                    :key="assignee.xid"
-                                                    :title="assignee.name"
-                                                >
-                                                    <a-avatar :src="assignee.profile_image_url" />
-                                                </a-tooltip>
-                                            </a-avatar-group>
-                                        </div>
+                                    <div class="kcard-meta-right">
+                                        <span class="kcard-due" :class="{ 'overdue': isOverdue(task.due_date) }">
+                                            <CalendarOutlined /> {{ task.due_date ? task.due_date.substring(0, 5) : '—' }}
+                                        </span>
+                                        <a-avatar-group :max-count="2" size="small">
+                                            <a-tooltip
+                                                v-for="assignee in task.assignee_details"
+                                                :key="assignee.xid"
+                                                :title="assignee.name"
+                                            >
+                                                <a-avatar :src="assignee.profile_image_url" />
+                                            </a-tooltip>
+                                        </a-avatar-group>
                                     </div>
                                 </div>
                             </div>
@@ -318,7 +332,13 @@ import {
     UnorderedListOutlined,
     AppstoreOutlined,
     CalendarOutlined,
-    ArrowRightOutlined
+    ArrowRightOutlined,
+    FieldTimeOutlined,
+    SyncOutlined,
+    ExperimentOutlined,
+    MessageOutlined,
+    CheckCircleOutlined,
+    UserOutlined
 } from "@ant-design/icons-vue";
 import { useI18n } from "vue-i18n";
 import fields from "./fields";
@@ -335,6 +355,12 @@ export default {
         UnorderedListOutlined,
         AppstoreOutlined,
         CalendarOutlined,
+        FieldTimeOutlined,
+        SyncOutlined,
+        ExperimentOutlined,
+        MessageOutlined,
+        CheckCircleOutlined,
+        UserOutlined,
         AddEdit,
         AdminPageHeader,
     },
@@ -512,6 +538,19 @@ export default {
             }
         };
 
+        const getPriorityColorHex = (priority) => {
+            switch (priority) {
+                case "urgent":
+                    return "#ff4d4f";
+                case "high":
+                    return "#fa541c";
+                case "medium":
+                    return "#1890ff";
+                default:
+                    return "#8c8c8c";
+            }
+        };
+
         const isOverdue = (dueDate) => {
             if (!dueDate) return false;
             return new Date(dueDate) < new Date() && new Date(dueDate).toDateString() !== new Date().toDateString();
@@ -534,6 +573,7 @@ export default {
             getStatusColor,
             getStatusLabel,
             getPriorityColor,
+            getPriorityColorHex,
             isOverdue,
             stats,
         };
@@ -547,30 +587,54 @@ export default {
     padding-bottom: 15px;
 }
 .kanban-col-wrapper {
-    min-width: 250px;
+    min-width: 260px;
 }
 .kanban-column {
-    background: #f5f5f5;
-    border-radius: 12px;
-    padding: 12px;
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 18px;
+    padding: 16px 14px;
     min-height: 500px;
-    box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);
+    border: 1px solid rgba(255,255,255,0.5);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
 }
 .kanban-column-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
-    padding: 0 4px;
+    padding: 0 4px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.5);
+}
+.column-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.column-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: block;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 .column-title {
     font-weight: 700;
-    font-size: 14px;
-    color: #434343;
+    font-size: 13px;
+    color: rgba(0,0,0,0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
 }
 .column-count {
-    border-radius: 10px;
+    border-radius: 8px;
     font-weight: 700;
+    font-size: 12px;
+    padding: 2px 10px;
+    min-width: 24px;
+    text-align: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 .kanban-cards-list {
     display: flex;
@@ -579,97 +643,182 @@ export default {
     min-height: 450px;
 }
 .kanban-card {
-    background: #ffffff;
-    border-radius: 8px;
-    padding: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.03);
+    border: 1px solid rgba(255,255,255,0.7);
     cursor: grab;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border: 1px solid #f0f0f0;
+    transition: all 0.25s ease;
+    position: relative;
 }
 .kanban-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+    background: rgba(255,255,255,0.7);
+    border-color: rgba(255,255,255,0.9);
 }
 .kanban-card:active {
     cursor: grabbing;
+    transform: translateY(0);
+    background: rgba(255,255,255,0.45);
 }
-.card-project-name {
-    font-size: 11px;
-    color: #8c8c8c;
-    margin-bottom: 4px;
-}
-.card-task-name {
-    font-size: 13px;
+.kcard-project-name {
+    font-size: 10px;
     font-weight: 600;
-    color: #262626;
+    color: rgba(0,0,0,0.35);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+.kcard-task-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(0,0,0,0.8);
     margin-bottom: 12px;
     line-height: 1.4;
 }
-.card-footer {
+.kcard-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+.kcard-tag {
+    font-size: 10px;
+    padding: 0 6px;
+    line-height: 18px;
+    border-radius: 4px;
+}
+.kcard-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.5);
 }
-.due-date {
-    font-size: 11px;
-    color: #bfbfbf;
+.kcard-priority {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(0,0,0,0.4);
+    letter-spacing: 0.5px;
     display: flex;
     align-items: center;
+    gap: 5px;
 }
-.due-date.overdue {
+.priority-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.kcard-meta-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.kcard-due {
+    font-size: 11px;
+    color: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.kcard-due.overdue {
     color: #ff4d4f;
     font-weight: 600;
 }
 
 .stats-cards-container {
-    background: transparent;
-}
-.stats-card {
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    background: #ffffff;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.stats-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-}
-.card-inner {
-    padding: 10px;
-}
-.card-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a1a1a;
-    line-height: 1.2;
-}
-.card-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #8c8c8c;
-    margin-top: 4px;
-}
-.card-sub-label {
-    font-size: 12px;
-    color: #8c8c8c;
-    margin-top: 4px;
+    margin: 0 16px 24px 16px;
 }
 
-.not-started-tasks {
-    border-left: 5px solid #1890ff;
+.stats-card {
+    border-radius: 18px;
+    background: #f0f2f5;
+    box-shadow: 7px 7px 14px #d1d9e6, -7px -7px 14px #ffffff;
+    transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: none !important;
+    overflow: hidden;
+    position: relative;
 }
-.in-progress-tasks {
-    border-left: 5px solid #722ed1;
+
+.stats-card:hover {
+    box-shadow: 3px 3px 7px #d1d9e6, -3px -3px 7px #ffffff;
+    transform: translateY(-2px);
 }
-.testing-tasks {
-    border-left: 5px solid #fa8c16;
+
+.card-body {
+    padding: 24px 20px 22px;
+    text-align: center;
 }
-.awaiting-feedback-tasks {
-    border-left: 5px solid #13c2c2;
+
+.card-icon-row {
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: center;
 }
-.complete-tasks {
-    border-left: 5px solid #52c41a;
+
+.icon-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: #f0f2f5;
+    box-shadow: inset 3px 3px 7px #d1d9e6, inset -3px -3px 7px #ffffff;
+    transition: all 0.35s ease;
 }
+
+.stats-card:hover .icon-circle {
+    box-shadow: inset 2px 2px 4px #d1d9e6, inset -2px -2px 4px #ffffff;
+}
+
+.not-started-card .icon-circle { color: #1890ff; }
+.in-progress-card .icon-circle { color: #722ed1; }
+.testing-card .icon-circle { color: #fa8c16; }
+.awaiting-feedback-card .icon-circle { color: #13c2c2; }
+.complete-card .icon-circle { color: #52c41a; }
+
+.card-value {
+    font-size: 36px;
+    font-weight: 800;
+    color: #1a1a1a;
+    line-height: 1.1;
+    letter-spacing: -1px;
+}
+
+.card-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #8c8c8c;
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+.card-meta {
+    font-size: 12px;
+    color: #bfbfbf;
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.sub-icon {
+    font-size: 11px;
+}
+
+.not-started-card { border-left: none; }
+.in-progress-card { border-left: none; }
+.testing-card { border-left: none; }
+.awaiting-feedback-card { border-left: none; }
+.complete-card { border-left: none; }
 </style>

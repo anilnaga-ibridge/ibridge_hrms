@@ -104,4 +104,14 @@ class Task extends BaseModel
     {
         return $this->belongsTo(StaffMember::class, 'created_by', 'id');
     }
+
+    public function checklistItems()
+    {
+        return $this->hasMany(TaskChecklistItem::class, 'task_id', 'id');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(TaskComment::class, 'task_id', 'id');
+    }
 }

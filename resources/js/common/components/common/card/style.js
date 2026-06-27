@@ -21,25 +21,29 @@ figcaption {
 	}
   }
   h2 {
-	font-size: 20px;
-	font-weight: 600;
+	font-size: 28px;
+	font-weight: 800;
+	letter-spacing: -0.5px;
   }
   p {
-	font-size: 14px;
-	color: #9299B8;
+	font-size: 13px;
+	font-weight: 600;
+	color: #8c8c8c;
+	margin-top: 2px;
   }
 }
 `;
 
 const CardWidgetIcon = Styled('div', divProps)`
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: ${props => props.bgColor ? props.bgColor : '#7b2a72'};
-margin - right: 20px;
+  margin-right: 18px;
+  box-shadow: inset 3px 3px 7px rgba(0,0,0,0.15), inset -3px -3px 7px rgba(255,255,255,0.2);
 `;
 
 

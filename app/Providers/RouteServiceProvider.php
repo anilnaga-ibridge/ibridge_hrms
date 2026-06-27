@@ -88,6 +88,10 @@ class RouteServiceProvider extends ServiceProvider
                 ->namespace($this->namespace)
                 ->group(base_path('routes/common.php'));
 
+            Route::middleware('web')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/enterprise_tasks.php'));
+
             if (app_type() == 'non-saas') {
                 Route::middleware('web')
                     ->namespace($this->namespace)

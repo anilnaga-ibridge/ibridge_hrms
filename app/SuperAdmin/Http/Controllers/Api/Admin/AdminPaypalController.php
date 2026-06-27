@@ -49,17 +49,31 @@ class AdminPaypalController extends ApiBaseController
     {
         parent::__construct();
 
-        $razorpaySettings = GlobalSettings::withoutGlobalScope(CompanyScope::class)
+        $paypalSettings = GlobalSettings::withoutGlobalScope(CompanyScope::class)
             ->where('setting_type', 'payment_settings')
-            ->where('name_key', 'razorpay')
+            ->where('name_key', 'paypal')
             ->first();
-        $credential = (object) $razorpaySettings->credentials;
+        if (!$paypalSettings) {
+            $paypalSettings = GlobalSettings::withoutGlobalScope(CompanyScope::class)
+                ->where('setting_type', 'payment_settings')
+                ->where('name_key', 'razorpay')
+                ->first();
+        }
+        $credential = $paypalSettings ? (object) $paypalSettings->credentials : (object)[];
+
+        $paypalMode = $credential->paypal_mode ?? 'sandbox';
+        $paypalClientId = $credential->paypal_client_id ?? '';
+        $paypalSecret = $credential->paypal_secret ?? '';
 
         /** setup PayPal api context **/
-        config(['paypal.settings.mode' => $credential->paypal_mode]);
+        config(['paypal.settings.mode' => $paypalMode]);
         $paypal_conf = Config::get('paypal');
-        $this->_api_context = new ApiContext(new OAuthTokenCredential($credential->paypal_client_id, $credential->paypal_secret));
-        $this->_api_context->setConfig($paypal_conf['settings']);
+        if (class_exists(\PayPal\Rest\ApiContext::class)) {
+            $this->_api_context = new ApiContext(new OAuthTokenCredential($paypalClientId, $paypalSecret));
+            if (isset($paypal_conf['settings'])) {
+                $this->_api_context->setConfig($paypal_conf['settings']);
+            }
+        }
     }
 
     public function paymentWithpaypal($planId, $type)

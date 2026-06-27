@@ -28,50 +28,65 @@
         </template>
     </AdminPageHeader>
 
-    <div class="stats-cards-container" style="margin: 0 16px 24px 16px;">
-        <a-row :gutter="16">
-            <a-col :xs="24" :sm="12" :md="4" :lg="4" style="flex: 1 1 20%;">
-                <a-card :bordered="false" class="stats-card not-started-tasks">
-                    <div class="card-inner">
+    <div class="stats-cards-container">
+        <a-row :gutter="[16, 16]">
+            <a-col :xs="24" :sm="12" :md="4" :lg="4">
+                <a-card :bordered="false" class="stats-card not-started-card">
+                    <div class="card-body">
+                        <div class="card-icon-row">
+                            <div class="icon-circle"><FieldTimeOutlined /></div>
+                        </div>
                         <div class="card-value">{{ stats.notStarted }}</div>
                         <div class="card-label">Not Started</div>
-                        <div class="card-sub-label">My Tasks: {{ stats.myNotStarted }}</div>
+                        <div class="card-meta"><UserOutlined class="sub-icon" /> {{ stats.myNotStarted }} assigned to me</div>
                     </div>
                 </a-card>
             </a-col>
-            <a-col :xs="24" :sm="12" :md="4" :lg="4" style="flex: 1 1 20%;">
-                <a-card :bordered="false" class="stats-card in-progress-tasks">
-                    <div class="card-inner">
+            <a-col :xs="24" :sm="12" :md="4" :lg="4">
+                <a-card :bordered="false" class="stats-card in-progress-card">
+                    <div class="card-body">
+                        <div class="card-icon-row">
+                            <div class="icon-circle"><SyncOutlined /></div>
+                        </div>
                         <div class="card-value">{{ stats.inProgress }}</div>
                         <div class="card-label">In Progress</div>
-                        <div class="card-sub-label">My Tasks: {{ stats.myInProgress }}</div>
+                        <div class="card-meta"><UserOutlined class="sub-icon" /> {{ stats.myInProgress }} assigned to me</div>
                     </div>
                 </a-card>
             </a-col>
-            <a-col :xs="24" :sm="12" :md="4" :lg="4" style="flex: 1 1 20%;">
-                <a-card :bordered="false" class="stats-card testing-tasks">
-                    <div class="card-inner">
+            <a-col :xs="24" :sm="12" :md="4" :lg="4">
+                <a-card :bordered="false" class="stats-card testing-card">
+                    <div class="card-body">
+                        <div class="card-icon-row">
+                            <div class="icon-circle"><ExperimentOutlined /></div>
+                        </div>
                         <div class="card-value">{{ stats.testing }}</div>
                         <div class="card-label">Testing</div>
-                        <div class="card-sub-label">My Tasks: {{ stats.myTesting }}</div>
+                        <div class="card-meta"><UserOutlined class="sub-icon" /> {{ stats.myTesting }} assigned to me</div>
                     </div>
                 </a-card>
             </a-col>
-            <a-col :xs="24" :sm="12" :md="4" :lg="4" style="flex: 1 1 20%;">
-                <a-card :bordered="false" class="stats-card awaiting-feedback-tasks">
-                    <div class="card-inner">
+            <a-col :xs="24" :sm="12" :md="4" :lg="4">
+                <a-card :bordered="false" class="stats-card awaiting-feedback-card">
+                    <div class="card-body">
+                        <div class="card-icon-row">
+                            <div class="icon-circle"><MessageOutlined /></div>
+                        </div>
                         <div class="card-value">{{ stats.awaitingFeedback }}</div>
                         <div class="card-label">Awaiting Feedback</div>
-                        <div class="card-sub-label">My Tasks: {{ stats.myAwaitingFeedback }}</div>
+                        <div class="card-meta"><UserOutlined class="sub-icon" /> {{ stats.myAwaitingFeedback }} assigned to me</div>
                     </div>
                 </a-card>
             </a-col>
-            <a-col :xs="24" :sm="12" :md="4" :lg="4" style="flex: 1 1 20%;">
-                <a-card :bordered="false" class="stats-card complete-tasks">
-                    <div class="card-inner">
+            <a-col :xs="24" :sm="12" :md="4" :lg="4">
+                <a-card :bordered="false" class="stats-card complete-card">
+                    <div class="card-body">
+                        <div class="card-icon-row">
+                            <div class="icon-circle"><CheckCircleOutlined /></div>
+                        </div>
                         <div class="card-value">{{ stats.complete }}</div>
                         <div class="card-label">Complete</div>
-                        <div class="card-sub-label">My Tasks: {{ stats.myComplete }}</div>
+                        <div class="card-meta"><UserOutlined class="sub-icon" /> {{ stats.myComplete }} assigned to me</div>
                     </div>
                 </a-card>
             </a-col>
@@ -203,13 +218,27 @@
 
 <script>
 import { defineComponent, ref, onMounted, reactive, watch } from "vue";
-import { ArrowLeftOutlined } from "@ant-design/icons-vue";
+import {
+    ArrowLeftOutlined,
+    FieldTimeOutlined,
+    SyncOutlined,
+    ExperimentOutlined,
+    MessageOutlined,
+    CheckCircleOutlined,
+    UserOutlined
+} from "@ant-design/icons-vue";
 import AdminPageHeader from "../../../common/layouts/AdminPageHeader.vue";
 import common from "../../../common/composable/common";
 
 export default defineComponent({
     components: {
         ArrowLeftOutlined,
+        FieldTimeOutlined,
+        SyncOutlined,
+        ExperimentOutlined,
+        MessageOutlined,
+        CheckCircleOutlined,
+        UserOutlined,
         AdminPageHeader,
     },
     setup() {
@@ -420,52 +449,92 @@ export default defineComponent({
 }
 
 .stats-cards-container {
-    background: transparent;
-}
-.stats-card {
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    background: #ffffff;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.stats-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-}
-.card-inner {
-    padding: 10px;
-}
-.card-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a1a1a;
-    line-height: 1.2;
-}
-.card-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #8c8c8c;
-    margin-top: 4px;
-}
-.card-sub-label {
-    font-size: 12px;
-    color: #8c8c8c;
-    margin-top: 4px;
+    margin: 0 16px 24px 16px;
 }
 
-.not-started-tasks {
-    border-left: 5px solid #1890ff;
+.stats-card {
+    border-radius: 18px;
+    background: #f0f2f5;
+    box-shadow: 7px 7px 14px #d1d9e6, -7px -7px 14px #ffffff;
+    transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: none !important;
+    overflow: hidden;
+    position: relative;
 }
-.in-progress-tasks {
-    border-left: 5px solid #722ed1;
+
+.stats-card:hover {
+    box-shadow: 3px 3px 7px #d1d9e6, -3px -3px 7px #ffffff;
+    transform: translateY(-2px);
 }
-.testing-tasks {
-    border-left: 5px solid #fa8c16;
+
+.card-body {
+    padding: 24px 20px 22px;
+    text-align: center;
 }
-.awaiting-feedback-tasks {
-    border-left: 5px solid #13c2c2;
+
+.card-icon-row {
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: center;
 }
-.complete-tasks {
-    border-left: 5px solid #52c41a;
+
+.icon-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: #f0f2f5;
+    box-shadow: inset 3px 3px 7px #d1d9e6, inset -3px -3px 7px #ffffff;
+    transition: all 0.35s ease;
 }
+
+.stats-card:hover .icon-circle {
+    box-shadow: inset 2px 2px 4px #d1d9e6, inset -2px -2px 4px #ffffff;
+}
+
+.not-started-card .icon-circle { color: #1890ff; }
+.in-progress-card .icon-circle { color: #722ed1; }
+.testing-card .icon-circle { color: #fa8c16; }
+.awaiting-feedback-card .icon-circle { color: #13c2c2; }
+.complete-card .icon-circle { color: #52c41a; }
+
+.card-value {
+    font-size: 36px;
+    font-weight: 800;
+    color: #1a1a1a;
+    line-height: 1.1;
+    letter-spacing: -1px;
+}
+
+.card-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #8c8c8c;
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+.card-meta {
+    font-size: 12px;
+    color: #bfbfbf;
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.sub-icon {
+    font-size: 11px;
+}
+
+.not-started-card { border-left: none; }
+.in-progress-card { border-left: none; }
+.testing-card { border-left: none; }
+.awaiting-feedback-card { border-left: none; }
+.complete-card { border-left: none; }
 </style>

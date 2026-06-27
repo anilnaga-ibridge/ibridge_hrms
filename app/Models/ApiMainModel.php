@@ -193,14 +193,18 @@ class ApiMainModel extends Model
         // Parse ISO 8061 date
         if (preg_match('/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\\+(\d{2}):(\d{2})$/', $value)) {
             return Carbon::createFromFormat('Y-m-d\TH:i:s+P', $value);
-        } elseif (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2}T(\d{2}):(\d{2}):(\d{2})\\.(\d{1,3})Z)$/', $value)) {
+        } elseif (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2}T(\d{2}):(\d{2}):(\d{2})\\.(\d{1,6})Z)$/', $value)) {
             return Carbon::createFromFormat('Y-m-d\TH:i:s.uZ', $value);
         }
 
         // Finally, we will just assume this date is in the format used by default on
         // the database connection and use that format to create the Carbon object
         // that is returned back out to the developers after we convert it here.
-        return Carbon::createFromFormat($this->getDateFormat(), $value);
+        try {
+            return Carbon::createFromFormat($this->getDateFormat(), $value);
+        } catch (\Exception $e) {
+            return Carbon::parse($value);
+        }
     }
 
     /**
@@ -317,7 +321,7 @@ class ApiMainModel extends Model
             }
         }
 
-        parent::save($options);
+        $saved = parent::save($options);
 
         // Fill all other relations
         foreach ($this->relationAttributes as $key => $relationAttribute) {
@@ -386,6 +390,8 @@ class ApiMainModel extends Model
                 $relation->sync($relatedIds);
             }
         }
+
+        return $saved;
     }
 
     public function isRelationAllowedInQuery($fieldRelation)
