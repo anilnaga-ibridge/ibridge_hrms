@@ -3,10 +3,13 @@
         <template #header>
             <a-page-header title="Quick Tasks" class="p-0">
                 <template #extra>
-                    <a-radio-group v-model:value="filterStatus" size="small" button-style="solid">
-                        <a-radio-button value="active">Active</a-radio-button>
-                        <a-radio-button value="completed">Completed</a-radio-button>
-                    </a-radio-group>
+                    <a-space>
+                        <a-radio-group v-model:value="filterStatus" size="small" button-style="solid">
+                            <a-radio-button value="active">Active</a-radio-button>
+                            <a-radio-button value="completed">Completed</a-radio-button>
+                        </a-radio-group>
+                        <a-button type="primary" ghost size="small" @click="goToOverview">Task Overview</a-button>
+                    </a-space>
                 </template>
             </a-page-header>
         </template>
@@ -104,6 +107,7 @@
             v-if="selectedTask"
             :visible="detailsVisible"
             :task-xid="selectedTask.xid"
+            :modal="true"
             @close="closeTask"
             @updated="fetchTasks"
         />
@@ -112,6 +116,7 @@
 
 <script>
 import { defineComponent, ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import AdminPageHeader from '../../../common/layouts/AdminPageHeader.vue';
 import TaskDetailsModal from './TaskDetailsModal.vue';
 import { CalendarOutlined, RightOutlined } from '@ant-design/icons-vue';
@@ -123,6 +128,7 @@ export default defineComponent({
     components: { AdminPageHeader, TaskDetailsModal, CalendarOutlined, RightOutlined },
     setup() {
         const { user } = common();
+        const router = useRouter();
         const tasks = ref([]);
         const loading = ref(false);
         const filterStatus = ref('active');
@@ -180,9 +186,14 @@ export default defineComponent({
 
         const toggleComplete = async (task) => {
             const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+            const assigneeXids = task.assignees ? task.assignees.map(a => a.xid) : [];
             try {
-                await window.axiosAdmin.put(`/enterprise-tasks/tasks/${task.xid}`, { ...task, status: newStatus });
-                message.success(newStatus === 'completed' ? '✅ Task completed!' : 'Task marked as active');
+                await window.axiosAdmin.put(`/enterprise-tasks/tasks/${task.xid}`, {
+                    title: task.title,
+                    status: newStatus,
+                    assignees_xids: assigneeXids
+                });
+                message.success(newStatus === 'completed' ? 'Task completed!' : 'Task marked as active');
                 fetchTasks();
                 window.dispatchEvent(new CustomEvent('task-created'));
             } catch (err) {
@@ -192,6 +203,7 @@ export default defineComponent({
 
         const openTask = (task) => { selectedTask.value = task; detailsVisible.value = true; };
         const closeTask = () => { selectedTask.value = null; detailsVisible.value = false; };
+        const goToOverview = () => router.push({ name: 'admin.enterprise_tasks.employee_task_overview' });
 
         watch(filterStatus, fetchTasks);
         onMounted(() => { fetchTasks(); window.addEventListener('task-created', fetchTasks); });
@@ -203,7 +215,7 @@ export default defineComponent({
             selectedTask, detailsVisible,
             fetchTasks, isOverdue, isDeadlineOverdue, isDueToday, formatDueDate,
             getPriorityColor, getPriorityColorHex,
-            toggleComplete, openTask, closeTask
+            toggleComplete, openTask, closeTask, goToOverview
         };
     }
 });

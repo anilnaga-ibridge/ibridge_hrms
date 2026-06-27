@@ -204,6 +204,16 @@ export default [
                     menuKey: (route) => "enterprise_tasks_employee_tasks",
                     // No permission required — accessible to all authenticated users
                 }
+            },
+            {
+                path: "my-assigned-tasks/overview",
+                component: () => import("../views/enterprise-tasks/EmployeeTaskOverview.vue"),
+                name: "admin.enterprise_tasks.employee_task_overview",
+                meta: {
+                    requireAuth: true,
+                    menuParent: "enterprise_tasks",
+                    menuKey: (route) => "enterprise_tasks_employee_tasks",
+                }
             }
         ]
     }

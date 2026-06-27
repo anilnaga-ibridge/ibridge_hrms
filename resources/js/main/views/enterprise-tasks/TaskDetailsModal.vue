@@ -1,43 +1,39 @@
 <template>
-    <a-drawer
-        :title="task ? `${task.task_number} - ${task.title}` : 'Loading...'"
-        :visible="visible"
-        @close="$emit('close')"
-        width="800"
-        placement="right"
-        destroyOnClose
-    >
-        <template #extra>
-            <a-space v-if="task">
+    <component :is="containerTag" v-bind="containerBindings" @close="$emit('close')" @cancel="$emit('close')">
+        <template v-if="modal" #title>
+            <span>{{ task ? `${task.task_number} - ${task.title}` : 'Loading...' }}</span>
+        </template>
+        <template v-if="!modal" #extra>
+            <a-space v-if="task && canEdit">
                 <a-button type="dashed" @click="handleDuplicate">Duplicate</a-button>
                 <a-button danger @click="handleDelete">Delete</a-button>
             </a-space>
         </template>
-
-        <div v-if="task" style="padding-bottom: 40px;">
-            <a-row :gutter="24">
-                <!-- Left panel: descriptions, subtasks, checklists, comments wrapped in tabs -->
-                <a-col :span="16">
-                    <a-tabs v-model:activeKey="activeTabKey">
-                        <a-tab-pane key="details" tab="Details">
-                            <div style="padding-top: 12px;">
+        <div v-if="task" style="padding-bottom: 40px;"><a-row :gutter="24">
+            <!-- Left panel: descriptions, subtasks, checklists, comments wrapped in tabs -->
+            <a-col :span="16">
+                <a-tabs v-model:activeKey="activeTabKey">
+                    <a-tab-pane key="details" tab="Details">
+                        <div style="padding-top: 12px;">
                                 <!-- Title & Edit mode -->
                                 <div style="margin-bottom: 20px;">
                                     <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase;">Task Title</div>
-                                    <a-input v-model:value="editForm.title" style="font-size: 16px; font-weight: 500;" @blur="quickUpdate" />
+                                    <a-input v-if="canEdit" v-model:value="editForm.title" style="font-size: 16px; font-weight: 500;" @blur="quickUpdate" />
+                                    <div v-else style="font-size: 16px; font-weight: 500; color: #374151; padding: 4px 0;">{{ task.title }}</div>
                                 </div>
 
                                 <!-- Rich Text / Text Description -->
                                 <div style="margin-bottom: 24px;">
                                     <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; margin-bottom: 6px;">Description</div>
-                                    <a-textarea v-model:value="editForm.description" placeholder="Add a description..." :rows="4" @blur="quickUpdate" />
+                                    <a-textarea v-if="canEdit" v-model:value="editForm.description" placeholder="Add a description..." :rows="4" @blur="quickUpdate" />
+                                    <div v-else style="white-space: pre-wrap; color: #374151; padding: 4px 0;">{{ task.description || 'No description provided' }}</div>
                                 </div>
 
                                 <!-- SUBTASKS SECTION -->
-                                <div style="margin-bottom: 28px; border-top: 1px solid #f3f4f6; padding-top: 20px;">
+                                <div v-if="canEdit || (task.subtasks && task.subtasks.length > 0)" style="margin-bottom: 28px; border-top: 1px solid #f3f4f6; padding-top: 20px;">
                                     <a-row justify="space-between" align="middle" style="margin-bottom: 12px;">
                                         <a-col><span style="font-size: 14px; font-weight: bold; color: #374151;">Subtasks</span></a-col>
-                                        <a-col>
+                                        <a-col v-if="canEdit">
                                             <a-button size="small" type="primary" ghost @click="subtaskInputVisible = !subtaskInputVisible">
                                                 <PlusOutlined /> Add Subtask
                                             </a-button>
@@ -50,7 +46,7 @@
                                     </div>
 
                                     <!-- Add subtask form inline -->
-                                    <div v-if="subtaskInputVisible" style="margin-bottom: 16px; padding: 12px; background: #fafafa; border-radius: 8px;">
+                                    <div v-if="canEdit && subtaskInputVisible" style="margin-bottom: 16px; padding: 12px; background: #fafafa; border-radius: 8px;">
                                         <a-form layout="vertical">
                                             <a-form-item label="Subtask Title" required>
                                                 <a-input v-model:value="newSubtask.title" placeholder="Subtask name..." />
@@ -81,34 +77,34 @@
                                         <div class="subtasks-list">
                                             <div v-for="sub in task.subtasks" :key="sub.xid" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1px solid #f3f4f6; border-radius: 6px; margin-bottom: 6px;">
                                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                                    <a-checkbox :checked="sub.status === 'completed'" @change="toggleSubtaskStatus(sub)" />
+                                                    <a-checkbox :checked="sub.status === 'completed'" @change="toggleSubtaskStatus(sub)" :disabled="!canEdit" />
                                                     <span :style="{ textDecoration: sub.status === 'completed' ? 'line-through' : 'none', color: sub.status === 'completed' ? '#9ca3af' : '#374151' }">
                                                         {{ sub.title }}
                                                     </span>
                                                 </div>
                                                 <div style="display: flex; align-items: center; gap: 8px;">
                                                     <a-tag :color="getPriorityColor(sub.priority)" size="small">{{ sub.priority }}</a-tag>
-                                                    <a-button type="link" size="small" @click="convertSubtask(sub)">Convert to Task</a-button>
+                                                    <a-button v-if="canEdit" type="link" size="small" @click="convertSubtask(sub)">Convert to Task</a-button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- CHECKLISTS SECTION -->
-                                    <div style="margin-bottom: 28px; border-top: 1px solid #f3f4f6; padding-top: 20px;">
+                                    <div v-if="canEdit || (task.checklists && task.checklists.length > 0)" style="margin-bottom: 28px; border-top: 1px solid #f3f4f6; padding-top: 20px;">
                                         <a-row justify="space-between" align="middle" style="margin-bottom: 12px;">
-                                            <a-col><span style="font-size: 14px; font-weight: bold; color: #374151;">Checklists</span></a-col>
-                                            <a-col>
-                                                <a-button size="small" type="dashed" @click="showAddChecklistModal">
-                                                    <PlusOutlined /> Add Checklist
-                                                </a-button>
-                                            </a-col>
+                                        <a-col><span style="font-size: 14px; font-weight: bold; color: #374151;">Checklists</span></a-col>
+                                        <a-col v-if="canEdit">
+                                            <a-button size="small" type="dashed" @click="showAddChecklistModal">
+                                                <PlusOutlined /> Add Checklist
+                                            </a-button>
+                                        </a-col>
                                         </a-row>
 
                                         <div v-for="chk in task.checklists" :key="chk.xid" style="margin-bottom: 20px; background: #fafafa; padding: 12px; border-radius: 8px;">
                                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                                 <span style="font-weight: bold; color: #4b5563;">{{ chk.name }} ({{ chk.completion_percentage }}%)</span>
-                                                <a-button size="small" type="link" danger @click="deleteChecklist(chk)">Delete</a-button>
+                                                <a-button v-if="canEdit" size="small" type="link" danger @click="deleteChecklist(chk)">Delete</a-button>
                                             </div>
                                             
                                             <a-progress :percent="chk.completion_percentage" size="small" style="margin-bottom: 12px;" />
@@ -116,14 +112,14 @@
                                             <!-- Checklist items list -->
                                             <div v-for="item in chk.items" :key="item.xid" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
                                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                                    <a-checkbox :checked="item.is_completed" @change="toggleChecklistItem(item)" />
+                                                    <a-checkbox :checked="item.is_completed" @change="toggleChecklistItem(item)" :disabled="!canEdit" />
                                                     <span>{{ item.name }}</span>
                                                 </div>
-                                                <a-button size="small" type="link" danger @click="deleteChecklistItem(item)">Delete</a-button>
+                                                <a-button v-if="canEdit" size="small" type="link" danger @click="deleteChecklistItem(item)">Delete</a-button>
                                             </div>
 
                                             <!-- Add Checklist Item -->
-                                            <div style="margin-top: 8px;">
+                                            <div v-if="canEdit" style="margin-top: 8px;">
                                                 <a-input-search
                                                     placeholder="Add checklist item..."
                                                     enter-button="Add"
@@ -135,9 +131,10 @@
                                     </div>
 
                                     <!-- ATTACHMENTS SECTION -->
-                                    <div style="margin-bottom: 28px; border-top: 1px solid #f3f4f6; padding-top: 20px;">
+                                    <div v-if="canEdit || (task.attachments && task.attachments.length > 0)" style="margin-bottom: 28px; border-top: 1px solid #f3f4f6; padding-top: 20px;">
                                         <div style="font-size: 14px; font-weight: bold; color: #374151; margin-bottom: 12px;">Attachments</div>
                                         <a-upload
+                                            v-if="canEdit"
                                             name="file"
                                             :customRequest="handleFileUpload"
                                             :showUploadList="false"
@@ -159,7 +156,7 @@
                                                     </div>
                                                     <div style="font-size: 10px; color: #9ca3af;">{{ (att.file_size / 1024).toFixed(1) }} KB</div>
                                                 </div>
-                                                <a-button type="link" danger size="small" style="position: absolute; right: 4px; top: 4px;" @click="deleteAttachment(att)">Delete</a-button>
+                                                <a-button v-if="canEdit" type="link" danger size="small" style="position: absolute; right: 4px; top: 4px;" @click="deleteAttachment(att)">Delete</a-button>
                                             </div>
                                         </div>
                                     </div>
@@ -207,7 +204,7 @@
                                                         <template #datetime>
                                                             <span>{{ formatDateTime(item.created_at) }}</span>
                                                             <a-divider type="vertical" />
-                                                            <a-button type="link" size="small" danger @click="deleteComment(item)" style="padding: 0;">Delete</a-button>
+                                                            <a-button v-if="canEdit" type="link" size="small" danger @click="deleteComment(item)" style="padding: 0;">Delete</a-button>
                                                         </template>
                                                     </a-comment>
                                                 </a-list-item>
@@ -226,7 +223,7 @@
                                         <template #renderItem="{ item }">
                                             <a-list-item>
                                                 <template #actions>
-                                                    <a-button type="link" danger size="small" @click="deleteDependency(item)">Delete</a-button>
+                                                    <a-button v-if="canEdit" type="link" danger size="small" @click="deleteDependency(item)">Delete</a-button>
                                                 </template>
                                                 <a-list-item-meta>
                                                     <template #title>
@@ -246,7 +243,7 @@
                                     </a-list>
                                     <a-empty v-else description="No prerequisites defined for this task" style="margin-bottom: 24px;" />
 
-                                    <div style="border-top: 1px solid #f3f4f6; padding-top: 20px;">
+                                    <div v-if="canEdit" style="border-top: 1px solid #f3f4f6; padding-top: 20px;">
                                         <div style="font-size: 14px; font-weight: bold; color: #374151; margin-bottom: 12px;">Add Prerequisite Dependency</div>
                                         
                                         <a-form layout="vertical">
@@ -420,7 +417,8 @@
                     <!-- Status -->
                     <div style="margin-bottom: 16px;">
                         <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; margin-bottom: 6px;">Status</div>
-                        <a-select v-model:value="editForm.status" style="width: 100%" @change="quickUpdate">
+                        <div v-if="!canEdit"><a-tag>{{ task.status }}</a-tag></div>
+                        <a-select v-else v-model:value="editForm.status" style="width: 100%" @change="quickUpdate">
                             <a-select-option value="pending">Pending</a-select-option>
                             <a-select-option value="in_progress">In Progress</a-select-option>
                             <a-select-option value="under_review">Under Review</a-select-option>
@@ -434,7 +432,8 @@
                     <!-- Priority -->
                     <div style="margin-bottom: 16px;">
                         <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; margin-bottom: 6px;">Priority</div>
-                        <a-select v-model:value="editForm.priority" style="width: 100%" @change="quickUpdate">
+                        <div v-if="!canEdit"><a-tag :color="getPriorityColor(task.priority)">{{ task.priority }}</a-tag></div>
+                        <a-select v-else v-model:value="editForm.priority" style="width: 100%" @change="quickUpdate">
                             <a-select-option value="P1">P1 Critical</a-select-option>
                             <a-select-option value="P2">P2 High</a-select-option>
                             <a-select-option value="P3">P3 Medium</a-select-option>
@@ -443,7 +442,7 @@
                     </div>
 
                     <!-- Assignees -->
-                    <div style="margin-bottom: 16px;">
+                    <div v-if="canEdit" style="margin-bottom: 16px;">
                         <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; margin-bottom: 6px;">Assignees</div>
                         <a-select v-model:value="editForm.assignees_xids" mode="multiple" placeholder="Search assignees" style="width: 100%" @change="quickUpdate">
                             <a-select-option v-for="u in employees" :key="u.xid" :value="u.xid">{{ u.name }}</a-select-option>
@@ -451,7 +450,7 @@
                     </div>
 
                     <!-- Reviewers -->
-                    <div style="margin-bottom: 16px;">
+                    <div v-if="canEdit" style="margin-bottom: 16px;">
                         <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; margin-bottom: 6px;">Reviewers</div>
                         <a-select v-model:value="editForm.reviewers_xids" mode="multiple" placeholder="Search reviewers" style="width: 100%" @change="quickUpdate">
                             <a-select-option v-for="u in employees" :key="u.xid" :value="u.xid">{{ u.name }}</a-select-option>
@@ -459,7 +458,7 @@
                     </div>
 
                     <!-- Watchers -->
-                    <div style="margin-bottom: 16px;">
+                    <div v-if="canEdit" style="margin-bottom: 16px;">
                         <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; margin-bottom: 6px;">Watchers</div>
                         <a-select v-model:value="editForm.watchers_xids" mode="multiple" placeholder="Search watchers" style="width: 100%" @change="quickUpdate">
                             <a-select-option v-for="u in employees" :key="u.xid" :value="u.xid">{{ u.name }}</a-select-option>
@@ -467,7 +466,7 @@
                     </div>
 
                     <!-- Project Labels -->
-                    <div style="margin-bottom: 20px;">
+                    <div v-if="canEdit" style="margin-bottom: 20px;">
                         <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; margin-bottom: 6px;">Labels</div>
                         <a-select v-model:value="editForm.labels_xids" mode="multiple" placeholder="Select labels" style="width: 100%" @change="quickUpdate">
                             <a-select-option v-for="l in labels" :key="l.xid" :value="l.xid">{{ l.name }}</a-select-option>
@@ -477,13 +476,31 @@
                     <!-- Dates -->
                     <div style="margin-bottom: 16px;">
                         <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase;">Due Date</div>
-                        <a-date-picker v-model:value="editForm.due_date" style="width: 100%" value-format="YYYY-MM-DD" @change="quickUpdate" />
+                        <a-date-picker v-if="canEdit" v-model:value="editForm.due_date" style="width: 100%" value-format="YYYY-MM-DD" @change="quickUpdate" />
+                        <div v-else style="font-size: 14px; color: #374151; padding: 4px 0;">{{ task.due_date || '—' }}</div>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase;">Deadline</div>
+                        <div style="font-size: 14px; color: #374151; padding: 4px 0;">{{ task.deadline || '—' }}</div>
                     </div>
 
                     <!-- ESTIMATE -->
                     <div style="margin-bottom: 24px;">
                         <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; margin-bottom: 6px;">Estimated Hours</div>
-                        <a-input-number v-model:value="editForm.estimated_hours" :min="0" style="width: 100%" @blur="quickUpdate" />
+                        <a-input-number v-if="canEdit" v-model:value="editForm.estimated_hours" :min="0" style="width: 100%" @blur="quickUpdate" />
+                        <div v-else style="font-size: 14px; color: #374151; padding: 4px 0;">{{ task.estimated_hours || 0 }}h</div>
+                    </div>
+
+                    <!-- Reminders -->
+                    <div v-if="task.reminders && task.reminders.length > 0" style="margin-bottom: 24px; border-top: 1px solid #f3f4f6; padding-top: 16px;">
+                        <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; margin-bottom: 8px;">Reminders</div>
+                        <div v-for="rem in task.reminders" :key="rem.xid" style="display: flex; align-items: center; gap: 8px; padding: 4px 0;">
+                            <span style="font-size: 12px;">🔔</span>
+                            <span style="font-size: 12px; color: #374151;">{{ formatDateTime(rem.remind_at) }}</span>
+                            <a-tag v-if="rem.is_sent" color="green" size="small">Sent</a-tag>
+                            <a-tag v-else color="blue" size="small">Pending</a-tag>
+                        </div>
                     </div>
 
                     <!-- Audit Timeline -->
@@ -524,7 +541,7 @@
                 </a-form-item>
             </a-form>
         </a-modal>
-    </a-drawer>
+    </component>
 </template>
 
 <script>
@@ -536,11 +553,25 @@ import {
 import { message, Modal } from 'ant-design-vue';
 
 import dayjs from 'dayjs';
+import common from '../../../common/composable/common';
 
 export default defineComponent({
     props: {
         visible: Boolean,
-        taskXid: String
+        taskXid: String,
+        modal: Boolean
+    },
+
+    computed: {
+        containerTag() {
+            return this.modal ? 'a-modal' : 'a-drawer';
+        },
+        containerBindings() {
+            if (this.modal) {
+                return { open: this.visible, width: 800, destroyOnClose: true, footer: null };
+            }
+            return { visible: this.visible, width: 800, placement: 'right', destroyOnClose: true };
+        }
     },
     components: {
         PlusOutlined,
@@ -551,8 +582,16 @@ export default defineComponent({
         MoreOutlined
     },
     setup(props, { emit }) {
+        const { user } = common();
         const task = ref(null);
         const employees = ref([]);
+
+        const canEdit = computed(() => {
+            if (!task.value || !user.value) return false;
+            if (user.value.role && user.value.role.name === 'admin') return true;
+            if (user.value.xid === task.value.x_created_by) return true;
+            return false;
+        });
         const labels = ref([]);
         const activeTimer = ref(null);
         
@@ -1025,6 +1064,7 @@ export default defineComponent({
         }, { immediate: true });
 
         return {
+            canEdit,
             task,
             employees,
             labels,

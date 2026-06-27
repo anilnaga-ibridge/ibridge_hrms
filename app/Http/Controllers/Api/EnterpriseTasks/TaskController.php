@@ -283,7 +283,7 @@ class TaskController extends Controller
         $taskId = Common::getIdFromHash($id);
         $task = Task::with([
             'project', 'section', 'subtasks', 'createdByUser', 'updatedByUser', 'checklists.items',
-            'comments.replies', 'attachments', 'activities.user', 'timeLogs'
+            'comments.replies', 'attachments', 'activities.user', 'timeLogs', 'reminders'
         ])->findOrFail($taskId);
 
         return response()->json($task);
