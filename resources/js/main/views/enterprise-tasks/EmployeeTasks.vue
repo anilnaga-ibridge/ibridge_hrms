@@ -1,7 +1,7 @@
 <template>
     <AdminPageHeader>
         <template #header>
-            <a-page-header title="My Assigned Tasks" class="p-0">
+            <a-page-header title="Quick Tasks" class="p-0">
                 <template #extra>
                     <a-radio-group v-model:value="filterStatus" size="small" button-style="solid">
                         <a-radio-button value="active">Active</a-radio-button>
@@ -15,7 +15,7 @@
                 <a-breadcrumb-item>
                     <router-link :to="{ name: 'admin.dashboard.index' }">Dashboard</router-link>
                 </a-breadcrumb-item>
-                <a-breadcrumb-item>My Tasks</a-breadcrumb-item>
+                <a-breadcrumb-item>Quick Tasks</a-breadcrumb-item>
             </a-breadcrumb>
         </template>
     </AdminPageHeader>
@@ -81,7 +81,10 @@
                                     #{{ task.project.name }}
                                 </a-tag>
                                 <span v-if="task.due_date" class="due-chip" :class="{ 'due-chip--overdue': isOverdue(task), 'due-chip--today': isDueToday(task) }">
-                                    <CalendarOutlined /> {{ formatDueDate(task.due_date) }}
+                                    <CalendarOutlined /> Due: {{ formatDueDate(task.due_date) }}
+                                </span>
+                                <span v-if="task.deadline" class="deadline-chip" :class="{ 'deadline-chip--overdue': isDeadlineOverdue(task) }" style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #ef4444; font-weight: 600; margin-left: 8px;">
+                                    <CalendarOutlined /> Deadline: {{ formatDueDate(task.deadline) }}
                                 </span>
                             </div>
                         </div>
@@ -136,7 +139,7 @@ export default defineComponent({
                 } else {
                     params.exclude_status = 'completed';
                 }
-                const res = await axiosAdmin.get('/enterprise-tasks/tasks', { params });
+                const res = await window.axiosAdmin.get('/enterprise-tasks/tasks', { params });
                 tasks.value = res.data || [];
             } catch (err) {
                 console.error(err);
@@ -160,6 +163,10 @@ export default defineComponent({
             if (!task.due_date || task.status === 'completed') return false;
             return dayjs(task.due_date).isBefore(dayjs(), 'day');
         };
+        const isDeadlineOverdue = (task) => {
+            if (!task.deadline || task.status === 'completed') return false;
+            return dayjs(task.deadline).isBefore(dayjs(), 'day');
+        };
         const isDueToday = (task) => task.due_date && dayjs(task.due_date).isSame(dayjs(), 'day');
         const formatDueDate = (date) => {
             const d = dayjs(date);
@@ -174,7 +181,7 @@ export default defineComponent({
         const toggleComplete = async (task) => {
             const newStatus = task.status === 'completed' ? 'pending' : 'completed';
             try {
-                await axiosAdmin.put(`/enterprise-tasks/tasks/${task.xid}`, { ...task, status: newStatus });
+                await window.axiosAdmin.put(`/enterprise-tasks/tasks/${task.xid}`, { ...task, status: newStatus });
                 message.success(newStatus === 'completed' ? '✅ Task completed!' : 'Task marked as active');
                 fetchTasks();
                 window.dispatchEvent(new CustomEvent('task-created'));
@@ -194,7 +201,7 @@ export default defineComponent({
             tasks, loading, filterStatus, groupedTasks,
             urgentCount, overdueCount, dueTodayCount,
             selectedTask, detailsVisible,
-            fetchTasks, isOverdue, isDueToday, formatDueDate,
+            fetchTasks, isOverdue, isDeadlineOverdue, isDueToday, formatDueDate,
             getPriorityColor, getPriorityColorHex,
             toggleComplete, openTask, closeTask
         };

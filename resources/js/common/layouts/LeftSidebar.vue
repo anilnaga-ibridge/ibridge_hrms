@@ -161,6 +161,121 @@
                         <span>{{ $t("menu.tasks") }}</span>
                     </a-menu-item>
                     <a-sub-menu
+                        key="enterprise_tasks"
+                        v-if="permsArray.includes('admin')"
+                    >
+                        <template #title>
+                            <span>
+                                <AppstoreOutlined />
+                                <span>Enterprise Tasks</span>
+                            </span>
+                        </template>
+                        
+                        <!-- Add Task Item -->
+                        <a-menu-item
+                            @click="() => { menuSelected(); triggerQuickAdd(); }"
+                            key="enterprise_tasks_quick_add"
+                        >
+                            <div style="display:flex; justify-content: space-between; align-items:center; width:100%;">
+                                <span style="display:flex; align-items:center; gap:8px; color: #db4c3f; font-weight: 600;">
+                                    <PlusCircleFilled style="font-size:16px; color:#db4c3f;" />
+                                    <span>Add task</span>
+                                </span>
+                                <PicCenterOutlined style="color:#db4c3f; font-size:16px;" />
+                            </div>
+                        </a-menu-item>
+
+                        <!-- Search Item -->
+                        <a-menu-item
+                            @click="() => { menuSelected(); triggerCommandPalette(); }"
+                            key="enterprise_tasks_search"
+                        >
+                            <SearchOutlined />
+                            <span>Search</span>
+                        </a-menu-item>
+
+                        <!-- Inbox Item -->
+                        <a-menu-item
+                            v-if="inboxProjectXid"
+                            @click="() => { menuSelected(); $router.push({ name: 'admin.enterprise_tasks.project_details', params: { id: inboxProjectXid } }); }"
+                            key="enterprise_tasks_inbox"
+                        >
+                            <InboxOutlined />
+                            <span>Inbox</span>
+                        </a-menu-item>
+
+                        <!-- Today Item -->
+                        <a-menu-item
+                            @click="() => { menuSelected(); $router.push({ name: 'admin.enterprise_tasks.today' }); }"
+                            key="enterprise_tasks_today"
+                        >
+                            <ClockCircleOutlined />
+                            <span>Today</span>
+                        </a-menu-item>
+
+                        <!-- Upcoming Item -->
+                        <a-menu-item
+                            @click="() => { menuSelected(); $router.push({ name: 'admin.enterprise_tasks.upcoming' }); }"
+                            key="enterprise_tasks_upcoming"
+                        >
+                            <CalendarOutlined />
+                            <span>Upcoming</span>
+                        </a-menu-item>
+
+                        <!-- Filters & Labels -->
+                        <a-menu-item
+                            @click="() => { menuSelected(); $router.push({ name: 'admin.enterprise_tasks.filters_labels' }); }"
+                            key="enterprise_tasks_filters_labels"
+                        >
+                            <SlidersOutlined />
+                            <span>Filters & Labels</span>
+                        </a-menu-item>
+
+                        <!-- Reporting Item -->
+                        <a-menu-item
+                            @click="() => { menuSelected(); $router.push({ name: 'admin.enterprise_tasks.reports' }); }"
+                            key="enterprise_tasks_reports"
+                        >
+                            <BarChartOutlined />
+                            <span>Reporting</span>
+                        </a-menu-item>
+
+                        <!-- Projects Group -->
+                        <a-sub-menu key="enterprise_tasks_projects_group" title="Projects">
+                            <!-- Loop through personal projects -->
+                            <a-menu-item-group title="Personal">
+                                <a-menu-item
+                                    v-for="proj in personalProjects"
+                                    :key="'project_' + proj.xid"
+                                    @click="() => { menuSelected(); $router.push({ name: 'admin.enterprise_tasks.project_details', params: { id: proj.xid } }); }"
+                                >
+                                    <span :style="{ color: proj.color || '#4f46e5', marginRight: '8px' }">#</span>
+                                    <span>{{ proj.name }}</span>
+                                </a-menu-item>
+                            </a-menu-item-group>
+                            
+                            <!-- Loop through team projects -->
+                            <a-menu-item-group title="Team">
+                                <a-menu-item
+                                    v-for="proj in teamProjects"
+                                    :key="'project_' + proj.xid"
+                                    @click="() => { menuSelected(); $router.push({ name: 'admin.enterprise_tasks.project_details', params: { id: proj.xid } }); }"
+                                >
+                                    <span :style="{ color: proj.color || '#10b981', marginRight: '8px' }">#</span>
+                                    <span>{{ proj.name }}</span>
+                                </a-menu-item>
+                            </a-menu-item-group>
+                            
+                            <!-- Browse all projects -->
+                            <a-menu-item
+                                @click="() => { menuSelected(); $router.push({ name: 'admin.enterprise_tasks.projects' }); }"
+                                key="enterprise_tasks_browse_projects"
+                            >
+                                <span style="color:#2563eb; font-weight:500;">🌐 Browse all projects</span>
+                            </a-menu-item>
+                        </a-sub-menu>
+                    </a-sub-menu>
+                    <a-sub-menu
                         key="staff"
                         v-if="
                             permsArray.includes('users_view') ||
@@ -1195,6 +1310,19 @@
                     </a-menu-item>
 
                     <a-menu-item
+                        @click="
+                            () => {
+                                menuSelected();
+                                $router.push({ name: 'admin.enterprise_tasks.employee_tasks' });
+                            }
+                        "
+                        key="enterprise_tasks_employee_tasks"
+                    >
+                        <CheckSquareOutlined style="color: #4f46e5;" />
+                        <span style="font-weight: 600; color: #4f46e5;">Quick Tasks</span>
+                    </a-menu-item>
+
+                    <a-menu-item
                         v-if="willSubscriptionModuleVisible('assets')"
                         @click="
                             () => {
@@ -1613,6 +1741,14 @@ import {
     PicCenterOutlined,
     ProjectOutlined,
     CheckSquareOutlined,
+    CloudOutlined,
+    InboxOutlined,
+    StarOutlined,
+    CalendarOutlined,
+    ClockCircleOutlined,
+    SlidersOutlined,
+    SearchOutlined,
+    PlusCircleFilled,
 } from "@ant-design/icons-vue";
 import common from "../../common/composable/common";
 const { Sider } = Layout;
@@ -1665,6 +1801,14 @@ export default defineComponent({
         PicCenterOutlined,
         ProjectOutlined,
         CheckSquareOutlined,
+        CloudOutlined,
+        InboxOutlined,
+        StarOutlined,
+        CalendarOutlined,
+        ClockCircleOutlined,
+        SlidersOutlined,
+        SearchOutlined,
+        PlusCircleFilled,
     },
     setup(props, { emit }) {
         const {
@@ -1682,9 +1826,42 @@ export default defineComponent({
             "users",
             "settings",
             "subscription",
+            "enterprise_tasks",
         ];
         const authStore = useAuthStore();
         const route = useRoute();
+
+        const inboxProjectXid = ref(null);
+        const personalProjects = ref([]);
+        const teamProjects = ref([]);
+
+        const fetchInboxProject = async () => {
+            try {
+                const response = await window.axiosAdmin.get('/enterprise-tasks/projects-inbox');
+                inboxProjectXid.value = response.xid;
+            } catch (e) {
+                console.error('Failed to load inbox project', e);
+            }
+        };
+
+        const fetchProjects = async () => {
+            try {
+                const response = await window.axiosAdmin.get('/enterprise-tasks/projects');
+                const allProjs = response.filter(p => p.xid !== inboxProjectXid.value);
+                personalProjects.value = allProjs.filter(p => p.visibility === 'private');
+                teamProjects.value = allProjs.filter(p => p.visibility === 'team' || p.visibility === 'public');
+            } catch (err) {
+                console.error('Failed to load sidebar projects', err);
+            }
+        };
+
+        const triggerQuickAdd = () => {
+            window.__openQuickAdd?.();
+        };
+
+        const triggerCommandPalette = () => {
+            window.__openCommandPalette?.();
+        };
 
         const innerWidth = window.innerWidth;
         const openKeys = ref([]);
@@ -1696,7 +1873,7 @@ export default defineComponent({
                 ? "calc(100vh - 124px)"
                 : "calc(100vh - 61px)";
 
-        onMounted(() => {
+        onMounted(async () => {
             if (route.meta.barKey && route.meta.barKey === "self") {
                 activeKey.value = "self";
             }
@@ -1722,6 +1899,11 @@ export default defineComponent({
             }
 
             selectedKeys.value = [menuKey.replace("-", "_")];
+
+            if (permsArray.value.includes('admin')) {
+                await fetchInboxProject();
+                await fetchProjects();
+            }
         });
 
         const logout = () => {
@@ -1813,6 +1995,13 @@ export default defineComponent({
             themeMode,
             leftbarHeight,
             authStore,
+
+            inboxProjectXid,
+            personalProjects,
+            teamProjects,
+            triggerQuickAdd,
+            triggerCommandPalette,
+            fetchProjects,
         };
     },
 });
